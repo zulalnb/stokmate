@@ -1,100 +1,101 @@
 # StokMate API
 
-Stok yönetimi case study'si için hazırlanmış .NET 8 Web API'si.
-Veriler bellek içinde tutulur — veritabanı kurulumu, bağlantı ayarı veya migration gerekmez.
+A .NET 8 Web API built for the StokMate case study.
+Data is held in memory — no database setup, connection string or migrations required.
 
-## Gereksinim
+## Requirements
 
-- **.NET SDK 8.0 veya üzeri**
+- **.NET SDK 8.0 or later**
 
-Proje `net8.0` hedefler, ancak `RollForward` ayarı sayesinde yalnızca .NET 9 veya .NET 10
-kurulu olan makinelerde de sorunsuz çalışır. Kurulu sürümü kontrol etmek için:
+The project targets `net8.0`, but thanks to the `RollForward` setting it also runs
+without issues on machines that only have .NET 9 or .NET 10 installed. To check your
+installed version:
 
 ```bash
 dotnet --version
 ```
 
-## Çalıştırma
+## Running
 
-Çözüm klasöründe (`StokMate.sln` ile aynı yerde):
+From the solution folder (the same directory as `StokMate.sln`):
 
 ```bash
 dotnet run --project src/StokMate.Api
 ```
 
-Tek komut yeterlidir. İlk çalıştırmada paketler indirilir, ardından API açılır ve
-örnek veriler otomatik olarak yüklenir.
+One command is enough. On first run the packages are restored, then the API starts and
+the sample data is seeded automatically.
 
-> Visual Studio veya Rider kullanıyorsanız `StokMate.sln` dosyasını açıp doğrudan
-> çalıştırmanız yeterlidir.
+> If you use Visual Studio or Rider, just open `StokMate.sln` and run it directly.
 
-### Proje yapısı
+### Project structure
 
 ```
 StokMate/
 ├── StokMate.sln
 ├── README.md · API.md
 └── src/
-    └── StokMate.Api/     → API projesi (Controllers · Services · Data · Auth · Models · Common)
+    └── StokMate.Api/     → API project (Controllers · Services · Data · Auth · Models · Common)
 ```
 
-| | Adres |
+| | Address |
 | --- | --- |
-| API kökü | `http://localhost:5080` |
-| **Swagger arayüzü** | **`http://localhost:5080/swagger`** |
-| OpenAPI şeması | `http://localhost:5080/swagger/v1/swagger.json` |
+| API root | `http://localhost:5080` |
+| **Swagger UI** | **`http://localhost:5080/swagger`** |
+| OpenAPI schema | `http://localhost:5080/swagger/v1/swagger.json` |
 
-Port `5080` olarak sabitlenmiştir.
+The port is fixed at `5080`.
 
-## Test kullanıcısı
+## Test user
 
-| E-posta | Şifre |
+| Email | Password |
 | --- | --- |
 | `test@ornek.com` | `Test1234!` |
 
-`POST /auth/login` ile giriş yapın ve dönen `accessToken` değerini sonraki isteklerde
-`Authorization: Bearer <accessToken>` başlığıyla gönderin.
+Sign in with `POST /auth/login` and send the returned `accessToken` on subsequent
+requests in the `Authorization: Bearer <accessToken>` header.
 
-Swagger arayüzünde sağ üstteki **Authorize** düğmesine `accessToken` değerini yapıştırarak
-tüm uçları tarayıcıdan deneyebilirsiniz.
+In Swagger UI you can paste the `accessToken` into the **Authorize** button at the top
+right and try every endpoint straight from the browser.
 
-## Veri hakkında
+## About the data
 
-- Veriler bellek içi (InMemory) veritabanında tutulur.
-- Uygulama her başladığında örnek veri yeniden yüklenir: **80 ürün, 8 kategori, 12 marka, 6 tedarikçi**.
-- **Uygulama kapandığında tüm değişiklikler kaybolur.** Eklediğiniz, güncellediğiniz veya
-  sildiğiniz kayıtlar kalıcı değildir; API'yi yeniden başlattığınızda başlangıç verisine dönersiniz.
-- Ürün görselleri `picsum.photos` üzerinden gelir; görsellerin yüklenmesi için internet bağlantısı gerekir.
+- Data is stored in an in-memory database.
+- Sample data is re-seeded every time the application starts: **80 products, 8 categories, 12 brands, 6 suppliers**.
+- **All changes are lost when the application stops.** Records you create, update or
+delete are not persisted; restarting the API returns you to the initial data set.
+- Product images come from `picsum.photos`, so an internet connection is needed for them to load.
 
-## Mobil cihaz / emülatör erişimi
+## Access from a mobile device / emulator
 
-`localhost`, telefonun veya emülatörün **kendisini** işaret eder — geliştirme yaptığınız
-bilgisayarı değil. Bu yüzden fiziksel cihazdan veya emülatörden bağlanırken
-**makinenizin yerel IP adresini** kullanmanız gerekir.
+`localhost` points at the phone or the emulator **itself**, not at your development
+machine. When connecting from a physical device or an emulator you therefore need to use
+**your machine's local IP address**.
 
-| Ortam | Kullanılacak adres |
+| Environment | Address to use |
 | --- | --- |
-| Web (aynı makinede tarayıcı) | `http://localhost:5080` |
-| iOS simülatör | `http://localhost:5080` |
-| Android emülatör | `http://10.0.2.2:5080` |
-| Fiziksel cihaz (iOS / Android) | `http://<MAKINE_IP>:5080` |
+| Web (browser on the same machine) | `http://localhost:5080` |
+| iOS simulator | `http://localhost:5080` |
+| Android emulator | `http://10.0.2.2:5080` |
+| Physical device (iOS / Android) | `http://<MACHINE_IP>:5080` |
 
-Yerel IP adresinizi bulmak için:
+To find your local IP address:
 
-- **Windows:** `ipconfig` → "IPv4 Adresi" satırı (örn. `192.168.1.25`)
-- **macOS / Linux:** `ifconfig` veya `ip addr`
+- **Windows:** `ipconfig` → the "IPv4 Address" line (e.g. `192.168.1.25`)
+- **macOS / Linux:** `ifconfig` or `ip addr`
 
-Örnek: `http://192.168.1.25:5080`
+Example: `http://192.168.1.25:5080`
 
-Dikkat edilecekler:
+Things to watch out for:
 
-- Cihaz ile bilgisayar **aynı Wi-Fi ağında** olmalıdır.
-- API tüm ağ arayüzlerini dinler; sunucu tarafında ek bir ayar yapmanız gerekmez.
-- İlk çalıştırmada Windows Güvenlik Duvarı izin isteyebilir — özel ağlar için izin verin.
-- CORS tamamen serbesttir; tarayıcıdan kaynak (origin) kısıtlaması yaşamazsınız.
-- API yalnızca **HTTP** üzerinden yayın yapar (HTTPS yoktur). Android'de `http://` adreslerine
-  erişebilmek için `usesCleartextTraffic`, iOS'ta ise ATS ayarı gerekebilir.
+- The device and the computer must be on the **same Wi-Fi network**.
+- The API listens on all network interfaces; no extra server-side configuration is needed.
+- On first run Windows Firewall may ask for permission — allow it for private networks.
+- CORS is fully open; you will not hit origin restrictions from the browser.
+- The API serves over **HTTP only** (there is no HTTPS). To reach `http://` addresses you
+may need `usesCleartextTraffic` on Android and an ATS setting on iOS.
 
-## API dokümantasyonu
+## API documentation
 
-Tüm uçlar, alanlar, enum değerleri ve örnek istek/yanıtlar için **[API.md](API.md)** dosyasına bakın.
+For all endpoints, fields, enum values and example requests/responses, see
+**[API.md](API.md)**.
