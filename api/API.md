@@ -18,9 +18,7 @@ Authorization: Bearer <accessToken>
 
 - **accessToken** — 15 dakika geçerlidir. Süresi dolduğunda uçlar `401` döner.
 - **refreshToken** — 7 gün geçerlidir. `POST /auth/refresh` ile yeni bir anahtar çifti alınır.
-- Yenileme sırasında **rotasyon** uygulanır: kullanılan `refreshToken` iptal edilir ve
-  yanıtta yeni bir `refreshToken` verilir. Eski anahtar bir daha kullanılamaz —
-  istemcide her zaman en son dönen değeri saklayın.
+- Yenileme sırasında **rotasyon** uygulanır: kullanılan `refreshToken` iptal edilir ve yanıtta yeni bir `refreshToken` verilir. Eski anahtar bir daha kullanılamaz — istemcide her zaman en son dönen değeri saklayın.
 
 ### 1.2 Hata yanıtları
 
@@ -178,8 +176,7 @@ Yenileme anahtarını yeni bir anahtar çiftiyle değiştirir.
 
 ### 3.3 `POST /auth/logout`
 
-Oturumu kapatır. Gönderilen yenileme anahtarını iptal eder ve kullanıcının açık
-erişim anahtarlarını düşürür.
+Oturumu kapatır. Gönderilen yenileme anahtarını iptal eder ve kullanıcının açık erişim anahtarlarını düşürür.
 
 **Yetki:** `Authorization: Bearer <accessToken>`
 
@@ -400,8 +397,7 @@ Oluşturulan ürün, `GET /products` içindeki ürün alanlarıyla aynı biçimd
 
 ### 4.4 `PUT /products/{id}`
 
-Ürünün **tüm** alanlarını günceller. Gövde `POST /products` ile aynıdır —
-değiştirmediğiniz alanları da mevcut değerleriyle göndermeniz gerekir.
+Ürünün **tüm** alanlarını günceller. Gövde `POST /products` ile aynıdır — değiştirmediğiniz alanları da mevcut değerleriyle göndermeniz gerekir.
 
 `updatedAt` sunucu tarafında otomatik tazelenir.
 

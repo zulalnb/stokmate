@@ -62,15 +62,12 @@ tüm uçları tarayıcıdan deneyebilirsiniz.
 
 - Veriler bellek içi (InMemory) veritabanında tutulur.
 - Uygulama her başladığında örnek veri yeniden yüklenir: **80 ürün, 8 kategori, 12 marka, 6 tedarikçi**.
-- **Uygulama kapandığında tüm değişiklikler kaybolur.** Eklediğiniz, güncellediğiniz veya
-  sildiğiniz kayıtlar kalıcı değildir; API'yi yeniden başlattığınızda başlangıç verisine dönersiniz.
+- **Uygulama kapandığında tüm değişiklikler kaybolur.** Eklediğiniz, güncellediğiniz veya sildiğiniz kayıtlar kalıcı değildir; API'yi yeniden başlattığınızda başlangıç verisine dönersiniz.
 - Ürün görselleri `picsum.photos` üzerinden gelir; görsellerin yüklenmesi için internet bağlantısı gerekir.
 
 ## Mobil cihaz / emülatör erişimi
 
-`localhost`, telefonun veya emülatörün **kendisini** işaret eder — geliştirme yaptığınız
-bilgisayarı değil. Bu yüzden fiziksel cihazdan veya emülatörden bağlanırken
-**makinenizin yerel IP adresini** kullanmanız gerekir.
+`localhost`, telefonun veya emülatörün **kendisini** işaret eder — geliştirme yaptığınız bilgisayarı değil. Bu yüzden fiziksel cihazdan veya emülatörden bağlanırken **makinenizin yerel IP adresini** kullanmanız gerekir.
 
 | Ortam | Kullanılacak adres |
 | --- | --- |
@@ -92,8 +89,7 @@ Dikkat edilecekler:
 - API tüm ağ arayüzlerini dinler; sunucu tarafında ek bir ayar yapmanız gerekmez.
 - İlk çalıştırmada Windows Güvenlik Duvarı izin isteyebilir — özel ağlar için izin verin.
 - CORS tamamen serbesttir; tarayıcıdan kaynak (origin) kısıtlaması yaşamazsınız.
-- API yalnızca **HTTP** üzerinden yayın yapar (HTTPS yoktur). Android'de `http://` adreslerine
-  erişebilmek için `usesCleartextTraffic`, iOS'ta ise ATS ayarı gerekebilir.
+- API yalnızca **HTTP** üzerinden yayın yapar (HTTPS yoktur). Android'de `http://` adreslerine erişebilmek için `usesCleartextTraffic`, iOS'ta ise ATS ayarı gerekebilir.
 
 ## API dokümantasyonu
 
