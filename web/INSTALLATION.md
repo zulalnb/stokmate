@@ -1,9 +1,8 @@
 # Web Projesi Kurulumu
 
-`web/` projesinin sıfırdan (boş klasörden) nasıl kurulduğu: Vite + React +
-TypeScript scaffold, Tailwind v4, shadcn/ui, TanStack Router ve TanStack
-Query. Her bölümde kurulum komutları, oluşan/değişen dosyalar ve bu
-projede gerçekten karşılaşılmış bilinen tuzaklar var.
+`web/` projesinin sıfırdan (boş klasörden) nasıl kurulduğu. Her bölümde kurulum komutları, oluşan/değişen dosyalar ve bu projede gerçekten karşılaşılmış bilinen tuzaklar var.
+
+Bu dosya **kurulum ve araç yapılandırmasını** anlatır. Mimari kurallar, katman sorumlulukları, query key konvansiyonları ve UI kuralları `AGENTS.md`'dedir ve burada tekrar edilmez.
 
 ---
 
@@ -17,18 +16,11 @@ cd web
 pnpm install
 ```
 
-**Oluşan dosyalar:** `vite.config.ts`, `tsconfig.json` (solution-style,
-`references` ile `tsconfig.app.json` + `tsconfig.node.json`'a işaret eder),
-`src/main.tsx`, `index.html`.
+**Oluşan dosyalar:** `vite.config.ts`, `tsconfig.json` (solution-style, `references` ile `tsconfig.app.json` + `tsconfig.node.json`'a işaret eder), `src/main.tsx`, `index.html`.
 
-**Bilinen tuzak:** `tsconfig.json`'a eklenen `paths`/`baseUrl` proje
-referansları yüzünden gerçek derlemeye etki etmez — `src/`'i asıl
-type-check eden `tsconfig.app.json`'a **ayrıca** eklenmesi gerekir. Aksi
-halde `npx tsc -b` "Cannot find module '@/...'" hatası verir; ayrıca
-Vite/Rolldown'ın kendi `resolve.alias`'ı da `vite.config.ts`'te ayrı
-tanımlanmalıdır (biri diğerini kapsamaz).
+**Bilinen tuzak:** `tsconfig.json`'a eklenen `paths`/`baseUrl` proje referansları yüzünden gerçek derlemeye etki etmez — `src/`'i asıl type-check eden `tsconfig.app.json`'a **ayrıca** eklenmesi gerekir. Aksi halde `npx tsc -b` "Cannot find module '@/...'" hatası verir; ayrıca Vite/Rolldown'ın kendi `resolve.alias`'ı da `vite.config.ts`'te ayrı tanımlanmalıdır (biri diğerini kapsamaz).
 
-```ts
+```jsonc
 // tsconfig.app.json — compilerOptions içine
 "paths": { "@/*": ["./src/*"] }
 ```
@@ -41,13 +33,10 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
-  // ...
 })
 ```
 
-**Doğrulama:** `npx tsc -b` hatasız çalışmalı. (`npx tsc --noEmit` **tek
-başına yeterli değildir** — kök `tsconfig.json` solution-style olduğu için
-0 dosya kontrol eder ve sahte-yeşil sonuç verir.)
+**Doğrulama:** `npx tsc -b` hatasız çalışmalı. (`npx tsc --noEmit` **tek başına yeterli değildir** — kök `tsconfig.json` solution-style olduğu için 0 dosya kontrol eder ve sahte-yeşil sonuç verir.)
 
 ---
 
@@ -59,11 +48,9 @@ başına yeterli değildir** — kök `tsconfig.json` solution-style olduğu iç
 pnpm add tailwindcss @tailwindcss/vite
 ```
 
-`vite.config.ts`'e plugin eklenir, `src/index.css`'e `@import "tailwindcss"`
-konur (shadcn init bu adımı otomatik de yapabilir, bkz. bölüm 3).
+`vite.config.ts`'e plugin eklenir, `src/index.css`'e `@import "tailwindcss"` konur (shadcn init bu adımı otomatik de yapabilir, bkz. bölüm 4).
 
-**Doğrulama:** `pnpm run dev` başlatıp bir Tailwind class'ının (örn.
-`p-6`) gerçekten stil uyguladığı gözle kontrol edilir.
+**Doğrulama:** `pnpm run dev` başlatıp bir Tailwind class'ının (örn. `p-6`) gerçekten stil uyguladığı gözle kontrol edilir.
 
 ---
 
@@ -97,8 +84,7 @@ pnpm-lock.yaml
 src/routeTree.gen.ts
 ```
 
-`routeTree.gen.ts` otomatik üretildiği için hem burada hem
-`eslint.config.js`'in `globalIgnores`'ında hariç tutulur (bkz. bölüm 4).
+`routeTree.gen.ts` otomatik üretildiği için hem burada hem `eslint.config.js`'in `globalIgnores`'ında hariç tutulur (bkz. bölüm 5).
 
 **`package.json` script'leri:**
 
@@ -109,9 +95,7 @@ src/routeTree.gen.ts
 }
 ```
 
-**Doğrulama:** `npx prettier --check .` çalıştırılır; yalnızca gerçekten
-formatlanmamış dosyalar listelenmeli, `routeTree.gen.ts` listede
-görünmemeli.
+**Doğrulama:** `npx prettier --check .` çalıştırılır; yalnızca gerçekten formatlanmamış dosyalar listelenmeli, `routeTree.gen.ts` listede görünmemeli.
 
 ---
 
@@ -148,18 +132,9 @@ Bu projede seçilen ayarlar (`components.json`):
 pnpm dlx shadcn@latest add <component-adı>
 ```
 
-**Bilinen tuzak:** shadcn CLI, `@/` alias'ını bulmak için kök
-`tsconfig.json`'daki `paths`'e bakar (proje referansları zincirindeki
-`tsconfig.app.json`'a değil). Kök `tsconfig.json`'da `paths` tanımlı
-değilse, CLI alias'ı çözemez ve gerçek `src/components/ui/` yerine
-literal bir `./@/components/ui/...` klasörü oluşturur. Bu yüzden `@/*`
-path'i **hem** kök `tsconfig.json`'da **hem** `tsconfig.app.json`'da aynı
-anda tanımlı tutulmalı (bkz. bölüm 1) — biri diğerinin yerini tutmaz,
-ikisinin farklı tüketicisi var (shadcn CLI vs. gerçek derleme).
+**Bilinen tuzak:** shadcn CLI, `@/` alias'ını bulmak için kök `tsconfig.json`'daki `paths`'e bakar (proje referansları zincirindeki `tsconfig.app.json`'a değil). Kök `tsconfig.json`'da `paths` tanımlı değilse CLI alias'ı çözemez ve gerçek `src/components/ui/` yerine literal bir `./@/components/ui/...` klasörü oluşturur. Bu yüzden `@/*` path'i **hem** kök `tsconfig.json`'da **hem** `tsconfig.app.json`'da tanımlı tutulmalı (bkz. bölüm 1) — ikisinin farklı tüketicisi var: shadcn CLI ve gerçek derleme.
 
-**Doğrulama:** `pnpm dlx shadcn@latest add skeleton` gibi bir component
-eklenip dosyanın gerçekten `src/components/ui/skeleton.tsx`'te oluştuğu
-kontrol edilir (kök dizinde `./@/` diye bir klasör oluşmamalı).
+**Doğrulama:** `pnpm dlx shadcn@latest add skeleton` ile bir component eklenip dosyanın gerçekten `src/components/ui/skeleton.tsx`'te oluştuğu kontrol edilir (kök dizinde `./@/` diye bir klasör oluşmamalı).
 
 ---
 
@@ -182,29 +157,33 @@ export default defineConfig({
 })
 ```
 
-**Bilinen tuzak (kritik sıralama):** `tanstackRouter(...)` plugin listesinde
-**`react()`'ten önce** gelmelidir; aksi halde `autoCodeSplitting` hata
-verir.
+**Bilinen tuzak (kritik sıralama):** `tanstackRouter(...)` plugin listesinde **`react()`'ten önce** gelmelidir; aksi halde `autoCodeSplitting` hata verir.
 
 **Dosya yapısı:**
 
-- `src/routes/__root.tsx` — kök route (`createRootRoute`), layout +
-  `errorComponent` + `notFoundComponent`.
-- `src/routes/*.tsx` — dosya tabanlı route'lar (`createFileRoute`).
-- `src/routeTree.gen.ts` — plugin tarafından her `dev`/`build`'de otomatik
-  üretilir. **Elle düzenlenmez, `.gitignore`'a eklenmez, commit edilir**
-  (tipler buna dayanıyor).
-- `src/router.ts` — `createRouter({ routeTree, defaultPreload: 'intent', ... })`
-  router instance'ı; `Register` modül augmentation'ı burada yapılır.
+```
+src/routes/
+├── __root.tsx              createRootRouteWithContext — layout + errorComponent + notFoundComponent
+├── login.tsx               korumasız
+├── _authenticated.tsx      pathless layout route — oturum guard'ı
+└── _authenticated/
+    ├── index.tsx
+    └── dashboard.tsx
+```
 
-**Bilinen tuzak (eslint):** `eslint-plugin-react-refresh`'in
-`only-export-components` kuralı, her route dosyasının hem `Route` export'unu
-hem de local bir component'i (`component: RootLayout` gibi) barındırmasından
-rahatsız olur. Component'i export etmek kuralı susturur ama
-`autoCodeSplitting`'i kırar (component artık local olmadığı için ayrı chunk'a
-bölünmez). Doğru çözüm: `eslint.config.js`'te `src/routes/**/*.tsx` için bu
-kuralı kapatan ayrı bir override — component'i export etmek veya per-dosya
-`eslint-disable` yorumu **değil**.
+- `_` önekli dosya **pathless layout route** üretir: URL'de `/dashboard` olarak görünür, `/_authenticated/dashboard` olarak değil. Guard'ın tek bir yerde durmasını sağlayan yapı budur.
+- `src/routeTree.gen.ts` — plugin tarafından her `dev`/`build`'de otomatik üretilir. **Elle düzenlenmez, `.gitignore`'a eklenmez, commit edilir** (tipler buna dayanıyor).
+- `src/router.ts` — `createRouter({ routeTree, defaultPreload: 'intent', ... })` instance'ı; `Register` modül augmentation'ı burada yapılır.
+
+Guard'ın içeriği ve kuralları: `AGENTS.md` § Authentication.
+
+**Bilinen tuzak (eslint):** `eslint-plugin-react-refresh`'in `only-export-components` kuralı, her route dosyasının hem `Route` export'unu hem de local bir component'i (`component: RootLayout` gibi) barındırmasından rahatsız olur. Component'i export etmek kuralı susturur ama `autoCodeSplitting`'i kırar (component artık local olmadığı için ayrı chunk'a bölünmez). Doğru çözüm: `eslint.config.js`'te `src/routes/**/*.tsx` için bu kuralı kapatan ayrı bir override — component'i export etmek veya per-dosya `eslint-disable` yorumu **değil**.
+
+**Bilinen tuzak (guard + context):** `_authenticated.tsx` içindeki `beforeLoad`, `context.queryClient` üzerinden `ensureQueryData` çağırır. Bu yüzden `__root.tsx` mutlaka `createRootRouteWithContext<{ queryClient: QueryClient }>()` ile tanımlanmalı ve `createRouter`'a `context: { queryClient }` geçilmelidir (bkz. bölüm 6). Aksi halde `context.queryClient` tipte vardır ama çalışma anında `undefined` gelir.
+
+**Bilinen tuzak (yönlendirme):** `beforeLoad` içinde `navigate()` çağrılmaz; yönlendirme `throw redirect({ to: '/login' })` ile yapılır. `redirect` çağrısının sonucu `return` edilirse route yüklenmeye devam eder — `throw` zorunludur.
+
+**Bilinen tuzak (bekleme ekranı):** Guard `await` içerdiği için korumalı ekranlar ilk açılışta `beforeLoad` çözülene kadar beklemede kalır. `createRouter`'a `defaultPendingComponent` verilmezse bu süre boyunca boş ekran görünür.
 
 **Doğrulama:**
 
@@ -213,9 +192,13 @@ npx tsc -b
 pnpm run build
 ```
 
-`pnpm run build` çıktısında `dist/assets/` altında route'a özel ayrı bir
-chunk (örn. `routes-*.js`) görülmeli — bu, code splitting'in çalıştığının
-kanıtıdır.
+`pnpm run build` çıktısında `dist/assets/` altında route'a özel ayrı bir chunk (örn. `routes-*.js`) görülmeli — code splitting'in çalıştığının kanıtıdır.
+
+Ardından elle:
+
+1. Oturum açıkken `/dashboard` adresine gidilir — açılmalı.
+2. `lib/auth-storage` temizlenip sayfa yenilenir — `/login`'e düşmeli.
+3. URL'de `/_authenticated/dashboard` denenir — 404 vermeli (pathless route URL'de görünmez).
 
 ---
 
@@ -228,8 +211,7 @@ pnpm add @tanstack/react-query
 pnpm add -D @tanstack/react-query-devtools
 ```
 
-**`src/query-client.ts`** — tek bir `QueryClient` instance'ı, varsayılan
-`staleTime`/`gcTime` seçenekleriyle:
+**`src/query-client.ts`** — tek bir `QueryClient` instance'ı:
 
 ```ts
 import { QueryClient } from '@tanstack/react-query'
@@ -254,22 +236,9 @@ import { queryClient } from '@/query-client'
 </QueryClientProvider>
 ```
 
-**TanStack Router entegrasyonu:** `router.ts`'teki
-`defaultPreloadStaleTime: 0` ayarı tam olarak bu yüzden önceden
-konulmuştu — router'ın kendi preload cache'i Query'nin cache'iyle
-çakışmasın diye. Router'a `context: { queryClient }` eklenip route
-loader'larının `queryClient.ensureQueryData(...)` çağırabilmesi
-sağlanmalı (`createRootRouteWithContext<{ queryClient: QueryClient }>()`).
+**Router entegrasyonu:** `router.ts`'teki `defaultPreloadStaleTime: 0` ayarı bu yüzden konuldu — router'ın kendi preload cache'i Query'nin cache'iyle çakışmasın diye. Router'a `context: { queryClient }` eklenir (`createRootRouteWithContext<{ queryClient: QueryClient }>()`), böylece hem loader'lar hem `_authenticated.tsx`'teki `beforeLoad` guard'ı `context.queryClient.ensureQueryData(...)` çağırabilir.
 
-**Konvansiyonlar** (burada tekrar edilmez, `AGENTS.md`'de tanımlı):
-
-- Query key şekli ve invalidation kuralı → § Kod Kuralları
-  (`['products', filters]`, `['product', id]`, `['categories']`,
-  `['brands']`, `['stats']`; her mutation sonrası `['products']`
-  invalidate edilir).
-- Loading/Error/Empty üç durumu → § Her Ekranda Üç Durum.
-- Sunucu verisinin yalnızca TanStack Query'de tutulması, Redux/Zustand/
-  Context yasağı → § Kod Kuralları.
+**Bilinen tuzak (mimari):** `beforeLoad` ve `loader` React hook çağıramaz. Query key ve `queryFn` yalnızca hook'un içinde tanımlıysa route katmanında elle ikinci kez yazmak gerekir ve iki tanım zamanla ayrışır — aynı veri için çift istek oluşur. Bu yüzden query tanımı `queryOptions()` fabrikası olarak export edilir; hem route hem hook aynı fabrikayı kullanır. Kural ve örnek: `AGENTS.md` § Mimari.
 
 **Doğrulama:**
 
@@ -278,5 +247,74 @@ npx tsc -b
 pnpm run build
 ```
 
-Devtools'un yalnızca dev modda göründüğü, production build'e dahil
-olmadığı kontrol edilir.
+Devtools'un yalnızca dev modda göründüğü, production build'e dahil olmadığı kontrol edilir.
+
+---
+
+## 7. Ortam değişkenleri
+
+**`.env.example`** (repoya commit edilir):
+
+```
+VITE_API_URL=http://localhost:5080
+```
+
+**`.env`** (`.gitignore`'da) geliştirici tarafından kopyalanarak oluşturulur:
+
+```bash
+cp .env.example .env
+```
+
+**Bilinen tuzak:** `.env` yoksa `import.meta.env.VITE_API_URL` sessizce `undefined` olur ve Axios istekleri sayfanın kendi origin'ine gider — 404 alırsın ama hata mesajı sebebi göstermez. `axios-client.ts` içinde değer yoksa açıkça hata fırlat.
+
+---
+
+## 8. Axios
+
+**Kurulum:**
+
+```bash
+pnpm add axios
+```
+
+**Dosya yapısı:**
+
+```
+src/api/
+├── axios-client.ts     tek Axios instance
+├── interceptors.ts     request/response interceptor'ları
+├── errors.ts           ApiError modeli
+└── services/           endpoint çağrıları (bkz. AGENTS.md § API Katmanı)
+```
+
+`src/api/axios-client.ts`:
+
+```ts
+axios.create({ baseURL: import.meta.env.VITE_API_URL })
+```
+
+**Bilinen tuzak (kritik):** `/auth/refresh` çağrısı, interceptor'ın takılı olduğu instance ile yapılamaz. Refresh isteğinin kendisi 401 dönerse response interceptor tekrar devreye girer ve yenileme sonsuz döngüye girer. Yenileme için `axios.create()` ile interceptor'sız **ikinci bir instance** kullanılır. Bu, "tek instance" kuralının tek istisnasıdır.
+
+**Bilinen tuzak:** Axios'un varsayılan `transformResponse`'u gövdeyi önce `JSON.parse` etmeye çalışır, başarısız olursa ham string'i döner. API hata gövdeleri `text/plain` olduğu için `error.response.data` bir **string**'tir — `data.message` gibi bir alan **yoktur**.
+
+**Bilinen tuzak:** Retry edilmiş istek işaretlenmezse (`config._retry`), refresh sonrası tekrar 401 dönen bir istek döngüye girer. Her istek en fazla bir kez retry edilir.
+
+Katman sorumlulukları, single-flight refresh davranışı ve `ApiError` sözleşmesi: `AGENTS.md` § API Katmanı.
+
+**Doğrulama:**
+
+```bash
+npx tsc -b
+pnpm run build
+```
+
+Ardından elle:
+
+1. Yanlış kimlik bilgileriyle giriş yapıldığında API'nin `text/plain` hata mesajının kullanıcıya olduğu gibi gösterildiği.
+2. HTTP hatalarında `status` bilgisinin `ApiError.status` üzerinden korunduğu.
+3. API kapalıyken (`dotnet run` durdurulmuş) ağ hatasının API hatasından ayırt edildiği (`status: 0` ve fallback mesajı).
+4. Access token süresi dolduğunda (15 dk bekleyerek veya `lib/auth-storage`'daki access token'ı elle bozarak) refresh işleminin otomatik gerçekleştiği.
+5. **Single-flight:** access token elle bozulup aynı anda birden fazla query tetikleyen bir ekran (örn. liste + kategoriler + markalar) açılır. Network sekmesinde `/auth/refresh` isteğinin **tam olarak bir kez** göründüğü doğrulanır.
+6. Aynı senaryoda bekleyen isteklerin yalnızca birer kez retry edildiği (her endpoint Network'te en fazla iki kez: ilk 401 + bir retry).
+7. Refresh token da bozulduğunda session'ın temizlendiği ve giriş ekranına yönlendirildiği.
+8. Çıkış yapıldıktan sonra korumalı bir adrese gidildiğinde `/login`'e yönlendirildiği — `useLogout` içinde `queryClient.clear()` çağrılmazsa `['me']` cache'de kalır ve guard ağ isteği atmadan geçer.
