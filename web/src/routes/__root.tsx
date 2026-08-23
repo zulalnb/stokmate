@@ -3,8 +3,8 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { QueryClient } from '@tanstack/react-query'
 
-import { RouteErrorFallback } from '@/components/RouteErrorFallback'
-import { RouteNotFound } from '@/components/RouteNotFound'
+import { RouteErrorFallback } from '@/components/route-error-fallback'
+import { RouteNotFound } from '@/components/route-not-found'
 
 export interface RouterContext {
   queryClient: QueryClient

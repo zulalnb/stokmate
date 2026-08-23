@@ -163,15 +163,31 @@ export default defineConfig({
 
 ```
 src/routes/
-├── __root.tsx              createRootRouteWithContext — layout + errorComponent + notFoundComponent
+├── __root.tsx              createRootRouteWithContext
 ├── login.tsx               korumasız
-├── _authenticated.tsx      pathless layout route — oturum guard'ı
+├── _authenticated.tsx      pathless layout route — guard + panel yerleşimi
 └── _authenticated/
     ├── index.tsx
-    └── dashboard.tsx
+    └── products/
 ```
 
-- `_` önekli dosya **pathless layout route** üretir: URL'de `/dashboard` olarak görünür, `/_authenticated/dashboard` olarak değil. Guard'ın tek bir yerde durmasını sağlayan yapı budur.
+Router varsayılanları `src/router.ts`'te bir kez bağlanır:
+
+```ts
+createRouter({
+  routeTree,
+  context: { queryClient },
+  defaultPreload: 'intent',
+  defaultPreloadStaleTime: 0,
+  defaultPendingComponent: RoutePending,
+  defaultErrorComponent: RouteErrorFallback,
+  defaultNotFoundComponent: RouteNotFound,
+})
+```
+
+Bu üç bileşen `src/components/` altındadır (`route-pending.tsx`, `route-error-fallback.tsx`, `route-not-found.tsx`). Route dosyalarında tekrar tanımlanmaz — istisna: ekrana özel iskelet gerektiren `pendingComponent` (bkz. AGENTS.md § Ortak route bileşenleri).
+
+- `_` önekli dosya **pathless layout route** üretir: URL'de `/products` olarak görünür, `/_authenticated/products` olarak değil. Guard'ın tek bir yerde durmasını sağlayan yapı budur.
 - `src/routeTree.gen.ts` — plugin tarafından her `dev`/`build`'de otomatik üretilir. **Elle düzenlenmez, `.gitignore`'a eklenmez, commit edilir** (tipler buna dayanıyor).
 - `src/router.ts` — `createRouter({ routeTree, defaultPreload: 'intent', ... })` instance'ı; `Register` modül augmentation'ı burada yapılır.
 
@@ -196,9 +212,9 @@ pnpm run build
 
 Ardından elle:
 
-1. Oturum açıkken `/dashboard` adresine gidilir — açılmalı.
+1. Oturum açıkken `/products` adresine gidilir — açılmalı.
 2. `lib/auth-storage` temizlenip sayfa yenilenir — `/login`'e düşmeli.
-3. URL'de `/_authenticated/dashboard` denenir — 404 vermeli (pathless route URL'de görünmez).
+3. URL'de `/_authenticated/products` denenir — 404 vermeli (pathless route URL'de görünmez).
 
 ---
 
@@ -318,3 +334,44 @@ Ardından elle:
 6. Aynı senaryoda bekleyen isteklerin yalnızca birer kez retry edildiği (her endpoint Network'te en fazla iki kez: ilk 401 + bir retry).
 7. Refresh token da bozulduğunda session'ın temizlendiği ve giriş ekranına yönlendirildiği.
 8. Çıkış yapıldıktan sonra korumalı bir adrese gidildiğinde `/login`'e yönlendirildiği — `useLogout` içinde `queryClient.clear()` çağrılmazsa `['me']` cache'de kalır ve guard ağ isteği atmadan geçer.
+
+---
+
+## 9. shadcn sidebar bloğu
+
+**Kurulum:**
+
+```bash
+pnpm dlx shadcn@latest add sidebar
+```
+
+Üretilen bileşenler `src/components/` altına gelir: `app-sidebar.tsx`, `nav-main.tsx`, `nav-user.tsx`, `site-header.tsx`.
+
+Panel yerleşimi `_authenticated.tsx` içinde kurulur; `--sidebar-width` ve `--header-height` `SidebarProvider`'a inline style ile verilir.
+
+Navigasyon öğeleri `lib/constants.ts`'te tanımlanır ve `nav-main.tsx` tarafından okunur.
+
+**Bilinen tuzak:** shadcn CLI kebab-case dosya adı üretir. Proje başlangıcında component dosyaları PascalCase idi; iki stilin karışmaması için tümü kebab-case'e çevrildi (`RouteErrorFallback.tsx` → `route-error-fallback.tsx`). Kural: AGENTS.md § Kod Kuralları.
+
+**Doğrulama:** `pnpm run dev` ile panel açılır; sidebar daraltılıp genişletildiğinde içerik alanı kaymamalı, `SiteHeader` sabit kalmalı.
+
+---
+
+## 10. TanStack Table
+
+**Kurulum:**
+
+```bash
+pnpm add @tanstack/react-table
+pnpm dlx shadcn@latest add table
+```
+
+**Bilinen tuzak (API sürümü — kritik):** Projede kütüphanenin yeni API'si kullanılıyor: `tableFeatures({})` ile feature seti oluşturulur, `createColumnHelper<typeof features, T>()` ile kolonlar tanımlanır, `useTable` ve `<FlexRender />` ile render edilir.
+
+İnternetteki örneklerin ve shadcn data-table dokümanının büyük çoğunluğu eski API'yi (`useReactTable`, `flexRender`, `getCoreRowModel`) gösterir. İkisi karıştırılırsa tip hataları anlaşılmaz hale gelir. Emin olunmadığında `node_modules/@tanstack/react-table` içindeki tipler okunur.
+
+**Bilinen tuzak (sunucu taraflı sayfalama):** shadcn'in data-table dokümanı client-side sayfalama varsayar. Bu projede sayfalama ve sıralama API tarafında; `getPaginationRowModel()` ve `getSortedRowModel()` **eklenmez**, `pageCount` `total`'dan hesaplanır (bkz. AGENTS.md § Tablolar).
+
+**Bilinen tuzak (kolon genişliği):** Varsayılan `table-auto` yerleşiminde kolon genişlikleri içeriğe göre ölçülür; sayfa değiştikçe uzun ürün adları tüm kolonları kaydırır. Tablo `table-fixed` ile kurulur, genişlikler kolon tanımındaki `meta.className` üzerinden `<th>`'lere uygulanır (`table-fixed`'de genişlik yalnızca ilk satırdan okunur).
+
+**Doğrulama:** İki farklı sayfa arasında gidilip gelinir; kolon genişlikleri sabit kalmalı. Network sekmesinde sayfa değişimi başına tek `GET /products` isteği görülmeli.

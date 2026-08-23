@@ -1,8 +1,8 @@
 import { createRouter } from '@tanstack/react-router'
 
-import { RouteErrorFallback } from '@/components/RouteErrorFallback'
-import { RouteNotFound } from '@/components/RouteNotFound'
-import { RoutePending } from '@/components/RoutePending'
+import { RouteErrorFallback } from '@/components/route-error-fallback'
+import { RouteNotFound } from '@/components/route-not-found'
+import { RoutePending } from '@/components/route-pending'
 import { queryClient } from '@/query-client'
 
 import { routeTree } from './routeTree.gen'

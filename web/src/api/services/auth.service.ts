@@ -6,4 +6,6 @@ export const authService = {
   login: (payload: LoginPayload) =>
     apiClient.post<AuthTokens>('/auth/login', payload).then((res) => res.data),
   me: () => apiClient.get<AuthUser>('/auth/me').then((res) => res.data),
+  logout: (refreshToken: string) =>
+    apiClient.post<void>('/auth/logout', { refreshToken }).then(() => undefined),
 }

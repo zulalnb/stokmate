@@ -14,7 +14,7 @@ import { hasSession, setTokens } from '@/lib/auth-storage'
 export const Route = createFileRoute('/login')({
   beforeLoad: () => {
     if (hasSession()) {
-      throw redirect({ to: '/dashboard' })
+      throw redirect({ to: '/products' })
     }
   },
   component: LoginPage,
@@ -43,7 +43,7 @@ function LoginPage() {
     loginMutation.mutate(values, {
       onSuccess: (data) => {
         setTokens(data)
-        navigate({ to: '/dashboard' })
+        navigate({ to: '/products' })
       },
     })
   }
