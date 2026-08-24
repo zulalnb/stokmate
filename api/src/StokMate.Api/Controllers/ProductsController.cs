@@ -27,6 +27,11 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult<ProductStatsDto>> GetStats()
         => await _productService.GetStatsAsync();
 
+    /// <summary>Tek bir ürünü tüm alanlarıyla getirir.</summary>
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<ProductDetailDto>> GetById(int id)
+        => await _productService.GetByIdAsync(id);
+
     /// <summary>Yeni ürün oluşturur.</summary>
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create([FromBody] CreateProductRequest request)

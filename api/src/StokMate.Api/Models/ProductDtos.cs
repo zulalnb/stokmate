@@ -30,6 +30,40 @@ public class ProductDto
     public DateTime UpdatedAt { get; set; }
 }
 
+/// <summary>GET /products/{id} yanıtı. Fiyat KURUŞ cinsindendir (1999 = 19,99 TL).</summary>
+public class ProductDetailDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Sku { get; set; } = "";
+    public string Barcode { get; set; } = "";
+    public string ImageUrl { get; set; } = "";
+
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = "";
+
+    public int BrandId { get; set; }
+    public string BrandName { get; set; } = "";
+
+    public int SupplierId { get; set; }
+
+    /// <summary>Satış fiyatı, KURUŞ cinsinden.</summary>
+    public int Price { get; set; }
+
+    /// <summary>Alış maliyeti, KURUŞ cinsinden.</summary>
+    public int CostPrice { get; set; }
+
+    public int Stock { get; set; }
+    public int MinStock { get; set; }
+
+    public ProductUnit Unit { get; set; }
+    public ProductStatus Status { get; set; }
+
+    public string Description { get; set; } = "";
+    public bool IsFeatured { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
 /// <summary>GET /products sorgu parametreleri.</summary>
 public class ProductQuery
 {

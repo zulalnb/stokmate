@@ -84,6 +84,7 @@ Tüm tarihler **UTC** ve ISO 8601 biçimindedir: `2026-07-17T12:39:31.9060307Z`
 | `POST` | `/auth/logout` | Bearer |
 | `GET` | `/auth/me` | Bearer |
 | `GET` | `/products` | Bearer |
+| `GET` | `/products/{id}` | Bearer |
 | `GET` | `/products/stats` | Bearer |
 | `POST` | `/products` | Bearer |
 | `PUT` | `/products/{id}` | Bearer |
@@ -296,7 +297,59 @@ Authorization: Bearer <accessToken>
 
 ---
 
-### 4.2 `GET /products/stats`
+### 4.2 `GET /products/{id}`
+
+Tek bir ürünün tüm alanlarını döner (düzenleme formu için gereken `costPrice`, `supplierId`, `description` dahil).
+
+**Path parametresi**
+
+| Parametre | Tip |
+| --- | --- |
+| `id` | int |
+
+**Yanıt — `200 OK`**
+
+```json
+{
+  "id": 1,
+  "name": "Coca-Cola 1 L Pet",
+  "sku": "ICE-1001",
+  "barcode": "8690637010011",
+  "imageUrl": "https://picsum.photos/seed/1/400/400",
+  "categoryId": 1,
+  "categoryName": "İçecek",
+  "brandId": 6,
+  "brandName": "Coca-Cola",
+  "supplierId": 1,
+  "price": 3950,
+  "costPrice": 2650,
+  "stock": 240,
+  "minStock": 40,
+  "unit": 1,
+  "status": 1,
+  "description": "500 ml cam şişe.",
+  "isFeatured": true,
+  "updatedAt": "2026-07-17T12:37:56.2270349Z"
+}
+```
+
+4.1'deki ürün alanlarına ek olarak:
+
+| Alan | Tip | Açıklama |
+| --- | --- | --- |
+| `supplierId` | int | Tedarikçi |
+| `costPrice` | int | Maliyet fiyatı — **KURUŞ** |
+| `description` | string | Ürün açıklaması (yoksa boş string) |
+
+**Hatalar**
+
+| Kod | Durum |
+| --- | --- |
+| `404` | Ürün bulunamadı |
+
+---
+
+### 4.3 `GET /products/stats`
 
 Stok durumu özeti.
 
@@ -318,7 +371,7 @@ Stok durumu özeti.
 
 ---
 
-### 4.3 `POST /products`
+### 4.4 `POST /products`
 
 Yeni ürün oluşturur.
 
@@ -395,7 +448,7 @@ Oluşturulan ürün, `GET /products` içindeki ürün alanlarıyla aynı biçimd
 
 ---
 
-### 4.4 `PUT /products/{id}`
+### 4.5 `PUT /products/{id}`
 
 Ürünün **tüm** alanlarını günceller. Gövde `POST /products` ile aynıdır — değiştirmediğiniz alanları da mevcut değerleriyle göndermeniz gerekir.
 
@@ -436,13 +489,13 @@ Güncellenmiş ürün (4.1'deki ürün alanlarıyla aynı biçim).
 
 | Kod | Durum |
 | --- | --- |
-| `400` | Geçersiz alan (bkz. 4.3) |
+| `400` | Geçersiz alan (bkz. 4.4) |
 | `404` | Ürün bulunamadı |
 | `409` | `sku` başka bir üründe kullanılıyor |
 
 ---
 
-### 4.5 `PATCH /products/{id}/stock`
+### 4.6 `PATCH /products/{id}/stock`
 
 Yalnızca stok miktarını günceller. `updatedAt` otomatik tazelenir.
 
@@ -471,7 +524,7 @@ Güncellenmiş ürün (4.1'deki ürün alanlarıyla aynı biçim).
 
 ---
 
-### 4.6 `DELETE /products/{id}`
+### 4.7 `DELETE /products/{id}`
 
 Ürünü siler.
 

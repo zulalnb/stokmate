@@ -69,6 +69,17 @@ public class ProductService
         };
     }
 
+    public async Task<ProductDetailDto> GetByIdAsync(int id)
+    {
+        var product = await _db.Products
+            .Include(p => p.Category)
+            .Include(p => p.Brand)
+            .FirstOrDefaultAsync(p => p.Id == id)
+            ?? throw new NotFoundException($"{id} numaralı ürün bulunamadı.");
+
+        return ToDetailDto(product);
+    }
+
     public async Task<ProductStatsDto> GetStatsAsync() => new()
     {
         Total = await _db.Products.CountAsync(),
@@ -295,6 +306,29 @@ public class ProductService
         MinStock = p.MinStock,
         Unit = p.Unit,
         Status = p.Status,
+        IsFeatured = p.IsFeatured,
+        UpdatedAt = p.UpdatedAt
+    };
+
+    private static ProductDetailDto ToDetailDto(Product p) => new()
+    {
+        Id = p.Id,
+        Name = p.Name,
+        Sku = p.Sku,
+        Barcode = p.Barcode,
+        ImageUrl = p.ImageUrl,
+        CategoryId = p.CategoryId,
+        CategoryName = p.Category?.Name ?? "",
+        BrandId = p.BrandId,
+        BrandName = p.Brand?.Name ?? "",
+        SupplierId = p.SupplierId,
+        Price = p.Price,
+        CostPrice = p.CostPrice,
+        Stock = p.Stock,
+        MinStock = p.MinStock,
+        Unit = p.Unit,
+        Status = p.Status,
+        Description = p.Description,
         IsFeatured = p.IsFeatured,
         UpdatedAt = p.UpdatedAt
     };
