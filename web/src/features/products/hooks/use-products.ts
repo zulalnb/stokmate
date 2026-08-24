@@ -1,7 +1,12 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { productsService } from '@/api/services/products.service'
-import type { ProductDetail, ProductFilters, UpdateProductPayload } from '@/lib/types'
+import type {
+  CreateProductPayload,
+  ProductDetail,
+  ProductFilters,
+  UpdateProductPayload,
+} from '@/lib/types'
 
 export const productsQuery = (filters: ProductFilters) =>
   queryOptions({
@@ -33,6 +38,29 @@ export function useUpdateProduct(id: number) {
         old ? { ...old, ...data } : old,
       )
       queryClient.invalidateQueries({ queryKey: ['product', id] })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+    },
+  })
+}
+
+export function useCreateProduct() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: CreateProductPayload) => productsService.createProduct(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+    },
+  })
+}
+
+export function useDeleteProduct() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: number) => productsService.deleteProduct(id),
+    onSuccess: (_data, id) => {
+      queryClient.removeQueries({ queryKey: ['product', id] })
       queryClient.invalidateQueries({ queryKey: ['products'] })
     },
   })

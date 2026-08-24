@@ -76,6 +76,8 @@ export interface UpdateProductPayload {
   isFeatured?: boolean
 }
 
+export type CreateProductPayload = UpdateProductPayload
+
 export interface Category {
   id: number
   name: string

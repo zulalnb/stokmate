@@ -1,4 +1,5 @@
 import type {
+  CreateProductPayload,
   Product,
   ProductDetail,
   ProductFilters,
@@ -13,8 +14,11 @@ export const productsService = {
     apiClient.get<ProductListResponse>('/products', { params: filters }).then((res) => res.data),
   getProduct: (id: number) =>
     apiClient.get<ProductDetail>(`/products/${id}`).then((res) => res.data),
+  createProduct: (payload: CreateProductPayload) =>
+    apiClient.post<Product>('/products', payload).then((res) => res.data),
   updateProduct: (id: number, payload: UpdateProductPayload) =>
     apiClient.put<Product>(`/products/${id}`, payload).then((res) => res.data),
   updateProductStock: (id: number, stock: number) =>
     apiClient.patch<Product>(`/products/${id}/stock`, { stock }).then((res) => res.data),
+  deleteProduct: (id: number) => apiClient.delete<void>(`/products/${id}`).then(() => undefined),
 }

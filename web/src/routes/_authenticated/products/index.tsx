@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { createFileRoute, Link, useRouter, type ErrorComponentProps } from '@tanstack/react-router'
 import { useQueryErrorResetBoundary, useSuspenseQuery } from '@tanstack/react-query'
 import { FlexRender, useTable } from '@tanstack/react-table'
+import { Plus } from 'lucide-react'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
@@ -69,6 +70,13 @@ function ProductsPage() {
 
   return (
     <div className="flex flex-col gap-4 overflow-auto px-4 lg:px-6">
+      <div className="flex justify-end">
+        <Button nativeButton={false} render={<Link to="/products/new" />}>
+          <Plus className="size-4" />
+          Ürün ekle
+        </Button>
+      </div>
+
       <div className="overflow-hidden rounded-lg border">
         <Table>
           <TableHeader className="bg-muted sticky top-0 z-10">

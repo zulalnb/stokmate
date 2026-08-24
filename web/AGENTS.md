@@ -138,7 +138,7 @@ Aynı query için key veya `queryFn` ikinci bir yerde tekrar yazılmaz; yazılı
 
 ### Kapsam — mevcut hook ve fabrika listesi
 
-Web panelinin kapsamı listeleme, detay ve güncellemedir:
+Web panelinin kapsamı listeleme, detay, oluşturma, güncelleme ve silmedir:
 
 ```
 meQuery()                 (fabrika — guard'da kullanılır)
@@ -146,14 +146,16 @@ useLogin()
 useLogout()
 productsQuery(filters)    useProducts(filters)
 productQuery(id)          useProduct(id)
+                          useCreateProduct()
                           useUpdateProduct()
                           useUpdateProductStock()
+                          useDeleteProduct()
 categoriesQuery()         useCategories()
 brandsQuery()             useBrands()
 statsQuery()              useStats()
 ```
 
-Bu liste örnek değil, kapsamdır. Ürün oluşturma ve silme web kapsamında yoktur. Listede olmayan bir hook veya fabrika eklemeden önce kullanıcıya sor.
+Bu liste örnek değil, kapsamdır. Listede olmayan bir hook veya fabrika eklemeden önce kullanıcıya sor.
 
 ---
 
@@ -330,6 +332,7 @@ src/routes/
     ├── index.tsx           →  /products'a yönlendirir
     └── products/
         ├── index.tsx       →  /products
+        ├── new.tsx         →  /products/new
         └── $id.tsx         →  /products/$id
 ```
 
