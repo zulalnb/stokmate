@@ -306,6 +306,17 @@ Kurallar:
 - `/login` bu ağacın dışındadır (`src/routes/login.tsx`) ve korumalı değildir.
 - `meQuery()` yalnızca oturum doğrulama içindir; kullanıcı bilgisini ekranda göstermek gerekirse aynı fabrika `useQuery` ile kullanılır, ikinci bir query tanımlanmaz.
 
+### Giriş
+
+`useLogin()` başarılı olduğunda dönen `user` verisini `meQuery()`'nin cache'ine
+(`meQuery().queryKey` ile) yazar. Böylece login sonrası `/products`'a
+yönlendirmenin tetiklediği `_authenticated` guard'ı, `staleTime` süresi içinde
+cache'i taze bulur ve `GET /auth/me`'yi tekrar çağırmaz.
+
+Cache key'i elle (`['auth', 'me']`) tekrar yazılmaz; `meQuery().queryKey`
+kullanılır — key iki yerde tanımlanırsa zamanla ayrışma riski oluşur (bkz. §
+Query tanımları).
+
 ### Çıkış
 
 `useLogout()`:

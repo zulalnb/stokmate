@@ -5,8 +5,13 @@ import { authService } from '@/api/services/auth.service'
 import { clearTokens, getRefreshToken } from '@/lib/auth-storage'
 
 export function useLogin() {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: authService.login,
+    onSuccess: (data) => {
+      queryClient.setQueryData(meQuery().queryKey, data.user)
+    },
   })
 }
 
