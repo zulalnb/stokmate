@@ -370,19 +370,33 @@ Nesne biçimi (`search={{ page: 2 }}`) diğer filtreleri siler; kullanma.
 
 ## Tablolar
 
-Ürün listesi `@tanstack/react-table` ile kurulur. Projede kütüphanenin yeni API'si kullanılır: `tableFeatures({})`, `createColumnHelper<typeof features, T>()`, `useTable`, `<FlexRender />`.
+Bir feature'ın listesi tabloyla gösterilecekse, dosya yapısı sabit bir
+şablonu izler; ürün tablosu bu şablonun referans örneğidir
+(`src/features/products/components/`):
+
+```
+data-table-features.tsx   tableFeatures({...}) konfigürasyonu — columnMeta tipi ve rowSortingFeature; `features` ve `DataTableFeatures` tipini export eder
+columns.tsx                createColumnHelper<DataTableFeatures, T>() ile kurulan `columns` dizisi
+sortable-header.tsx        sıralanabilir kolon başlığı — column.getIsSorted() / column.getToggleSortingHandler()
+data-table.tsx             useTable() çağrısı + <Table> render ağacı; columns/data/sorting/onSortingChange prop olarak alınır
+```
+
+Filtre çubuğu ve sayfalama bu dördün dışında, aynı `components/` klasöründe ayrı dosyalarda durur (ürün için `product-filter-bar.tsx`, `table-pagination.tsx`). Route dosyası yalnızca URL/arama state'ini yönetir ve bu component'lere prop geçirir; `useTable()` çağrısı route dosyasında olmaz.
+
+Projede kütüphanenin yeni API'si kullanılır: `tableFeatures`, `createColumnHelper`, `useTable`, `<FlexRender />`.
 
 **İnternetteki örneklerin ve shadcn data-table dokümanının çoğu eski API'yi (`useReactTable`, `flexRender`, `getCoreRowModel`) gösterir; bu projede geçerli değildir.** Emin olmadığında `node_modules/@tanstack/react-table` içindeki tipleri oku, tahmin etme.
 
 Sayfalama, sıralama ve filtreleme **sunucu taraflıdır**:
 
-- `getPaginationRowModel()` / `getSortedRowModel()` eklenmez; eklenirse API'nin döndürdüğü sayfa ikinci kez sayfalanır ve sıralama yalnızca o sayfa içinde çalışır.
+- `getPaginationRowModel()` / `getSortedRowModel()` eklenmez (yani `tableFeatures({...})`'a `paginatedRowModel` / `sortedRowModel` slotları geçirilmez); eklenirse API'nin döndürdüğü sayfa ikinci kez sayfalanır ve sıralama yalnızca o sayfa içinde çalışır.
+- `rowSortingFeature` yine de eklenir — ama yalnızca *state ve column API'si* için (`state.sorting`, `column.getIsSorted()`, `column.getToggleSortingHandler()`). `sortedRowModel` hiç eklenmediği için satırlar client'ta yeniden sıralanmaz; `useTable`'a geçirilen `state: { sorting }` ve `onSortingChange`, route'un URL güncelleyen handler'ına bağlanır.
 - `pageCount` `Math.ceil(total / pageSize)` ile hesaplanır; yanıtta `totalPages` yoktur.
-- Sayfa ve sıralama state'i tabloda tutulmaz; `validateSearch` şemasından okunur, `<Link search={...}>` ile güncellenir. `useState` ile `pagination` veya `sorting` state'i tutma.
-- Sıralanabilir kolonlar API'nin kabul ettikleriyle sınırlıdır: `name` | `price` | `stock` | `updatedAt`.
-- Kolon tanımları `src/features/products/components/columns.tsx` içinde durur, route dosyasında değil.
+- Sayfa ve sıralama state'i component içinde tutulmaz; `validateSearch` şemasından okunur, `<Link search={...}>` / `navigate({ search: ... })` ile güncellenir. `useState` ile `pagination` veya `sorting` state'i tutma.
+- Sıralanabilir kolonlar API'nin kabul ettikleriyle sınırlıdır: `name` | `price` | `stock` | `updatedAt`; yalnızca bu kolonlarda `enableSorting: true` işaretlenir.
+- Kolon tanımları `columns.tsx` içinde durur, route dosyasında değil.
 - Hücrelerde ham değer gösterilmez: fiyat `formatKurus`, `unit` ve `status` `lib/enums.ts` map'lerinden geçer.
-- Tablo `table-fixed` ile kurulur ve kolon genişlikleri kolon tanımındaki `meta.className` üzerinden verilir; sayfa değiştikçe kolon genişlikleri kaymamalıdır. Sayı kolonlarında `tabular-nums` kullanılır.
+- Kolon genişlikleri yalnızca gerektiğinde kolon tanımındaki `meta.className` üzerinden verilir (taşan bir kolonu `max-w-*` ile sınırlamak, dar bir sayı kolonunu `w-*` ile sabitlemek gibi). Tablo `table-fixed` **değildir**; `meta.className` her kolona değil, yalnızca ihtiyaç duyulana seçici olarak uygulanır. Sayı kolonlarında `tabular-nums` kullanılır.
 
 ---
 

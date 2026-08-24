@@ -1,39 +1,33 @@
+import type { Column } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 
-import type { ProductFilters } from '@/lib/types'
+import type { DataTableFeatures } from '@/features/products/components/data-table-features'
+import type { Product } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-export type SortableField = 'name' | 'price' | 'stock' | 'updatedAt'
-
-export function SortableHeader({
+export function SortableHeader<TValue>({
   label,
-  field,
+  column,
   align = 'left',
-  sort,
-  dir,
-  onSortChange,
 }: {
   label: string
-  field: SortableField
+  column: Column<DataTableFeatures, Product, TValue>
   align?: 'left' | 'right'
-  sort?: ProductFilters['sort']
-  dir?: ProductFilters['dir']
-  onSortChange: (field: SortableField) => void
 }) {
-  const isActive = sort === field
-  const Icon = isActive ? (dir === 'desc' ? ArrowDown : ArrowUp) : ArrowUpDown
+  const sortDir = column.getIsSorted()
+  const Icon = sortDir === 'asc' ? ArrowUp : sortDir === 'desc' ? ArrowDown : ArrowUpDown
 
   return (
     <button
       type="button"
-      onClick={() => onSortChange(field)}
+      onClick={column.getToggleSortingHandler()}
       className={cn(
         'inline-flex items-center gap-1 hover:text-foreground',
         align === 'right' && 'flex-row-reverse',
       )}
     >
       {label}
-      <Icon className={cn('size-3.5', !isActive && 'text-muted-foreground')} />
+      <Icon className={cn('size-3.5', !sortDir && 'text-muted-foreground')} />
     </button>
   )
 }

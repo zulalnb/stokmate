@@ -116,12 +116,19 @@ zamanla ayrışır ve aynı veri için iki istek çıkardı.
 
 Kolon tanımları tek dosyada toplanıyor, hücre render'ı tipli oluyor ve tablo
 yapısı ekran bileşeninden ayrılıyor. Daha önce çalıştığım bir desen olduğu için
-kurulum ve hata ayıklama süresi kısaydı.
+kurulum ve hata ayıklama süresi kısaydı. Tablo kodu sabit bir 4 dosyalık
+şablona oturuyor: `data-table-features.tsx` (tableFeatures config),
+`columns.tsx` (kolonlar), `sortable-header.tsx` (sıralanabilir başlık),
+`data-table.tsx` (`useTable()` + render) — yeni bir feature'da tablo
+gerektiğinde aynı yapı tekrarlanır.
 
-**Bedel:** Sayfalama, sıralama ve filtreleme API tarafında yapıldığı için
-kütüphanenin veri işleme katmanı kullanılmıyor (`getPaginationRowModel` ve
-`getSortedRowModel` eklenmiyor); kullanılan kısım kolon soyutlaması ve
-`FlexRender` ile sınırlı. Ayrıca projede kütüphanenin yeni API'si
+**Bedel:** Sayfalama ve filtreleme API tarafında yapıldığı için kütüphanenin
+veri işleme katmanı kullanılmıyor (`getPaginationRowModel` /
+`getSortedRowModel`/`filteredRowModel` eklenmiyor). Sıralama için istisna:
+`rowSortingFeature` eklendi, ama yalnızca state ve column API'si
+(`column.getIsSorted()`, `column.getToggleSortingHandler()`) için —
+`sortedRowModel` hiç eklenmediğinden satırlar client'ta yeniden sıralanmıyor,
+sıralama hâlâ sunucu tarafında. Ayrıca projede kütüphanenin yeni API'si
 (`tableFeatures`, `useTable`) kullanılıyor; internetteki örneklerin çoğu eski
 API'yi gösterdiği için referans ararken dikkat gerekiyor.
 
