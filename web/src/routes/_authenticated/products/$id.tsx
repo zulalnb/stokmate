@@ -1,9 +1,17 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { ChevronLeft } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { DeleteProductDialog } from '@/features/products/components/delete-product-dialog'
 import { ProductDetailError } from '@/features/products/components/product-detail-error'
 import { ProductDetailSkeleton } from '@/features/products/components/product-detail-skeleton'
 import { ProductEditForm } from '@/features/products/components/product-edit-form'
@@ -29,6 +37,7 @@ export const Route = createFileRoute('/_authenticated/products/$id')({
 
 function ProductDetailPage() {
   const { id } = Route.useParams()
+  const navigate = useNavigate()
   const { data: product } = useSuspenseQuery(productQuery(Number(id)))
 
   return (
@@ -48,6 +57,13 @@ function ProductDetailPage() {
         <CardHeader>
           <CardTitle>{product.name}</CardTitle>
           <CardDescription>Ürün bilgilerini güncelleyin.</CardDescription>
+          <CardAction>
+            <DeleteProductDialog
+              productId={product.id}
+              productName={product.name}
+              onDeleted={() => navigate({ to: '/products' })}
+            />
+          </CardAction>
         </CardHeader>
         <CardContent>
           <ProductEditForm product={product} />

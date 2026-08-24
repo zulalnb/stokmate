@@ -4,6 +4,7 @@ import { CircleCheck, CircleMinus, CircleX, Pencil, type LucideIcon } from 'luci
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DeleteProductDialog } from '@/features/products/components/delete-product-dialog'
 import { STATUS_LABELS } from '@/lib/enums'
 import { formatKurus } from '@/lib/money'
 import type { Product } from '@/lib/types'
@@ -74,7 +75,7 @@ export const productColumns = columnHelper.columns([
     id: 'actions',
     header: '',
     cell: ({ row }) => (
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-1">
         <Button
           variant="ghost"
           size="icon"
@@ -84,6 +85,7 @@ export const productColumns = columnHelper.columns([
           <Pencil className="size-4" />
           <span className="sr-only">Ürünü düzenle</span>
         </Button>
+        <DeleteProductDialog productId={row.original.id} productName={row.original.name} />
       </div>
     ),
   }),
