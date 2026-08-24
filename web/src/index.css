@@ -41,14 +41,6 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-body {
-  margin: 0;
-}
-
-p {
-  margin: 0;
-}
-
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: 'Inter Variable', sans-serif;
@@ -135,5 +127,9 @@ p {
   }
   html {
     @apply font-sans;
+  }
+   button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }
