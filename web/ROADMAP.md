@@ -37,47 +37,52 @@ Detaylar: `INSTALLATION.md`.
 - [x] `src/features/auth/hooks/use-auth.ts` — `meQuery()`, `useLogin()`, `useLogout()`
 - [x] `_authenticated.tsx` guard'ı + panel yerleşimi (sidebar + header + `Outlet`)
 - [x] Giriş ekranı (`POST /auth/login`)
-- [ ] `useLogout()` sırasının doğrulanması: `POST /auth/logout` → `auth-storage` temizle → `queryClient.clear()` → `/login`. `clear()` atlanırsa `['me']` cache'de kalır ve guard bir sonraki girişte ağ isteği atmadan geçer.
+- [x] `useLogout()` sırasının doğrulanması: `POST /auth/logout` → `auth-storage` temizle → `queryClient.clear()` → `/login`. `clear()` atlanırsa `['me']` cache'de kalır ve guard bir sonraki girişte ağ isteği atmadan geçer.
 - [ ] `INSTALLATION.md` § 8 doğrulama listesinin elle çalıştırılması (özellikle single-flight refresh).
 
-## Faz 2 — Ürün Kataloğu 🔜 Sırada
+## Faz 2 — Ürün Kataloğu 🔄 Devam ediyor
 
 **Taşıma işleri** (detay rotası eklenmeden önce yapılmalı)
 
-- [ ] `productsQuery` fabrikası route dosyasından `src/features/products/hooks/use-products.ts`'e taşınır — detay rotası ve mutation'lar aynı fabrikayı kullanacak.
-- [ ] `columns` tanımı `src/features/products/components/columns.tsx`'e taşınır.
-- [ ] Tablo iskeleti `src/features/products/components/` altına taşınır; satır sayısı `pageSize` ile uyumlu olur.
-- [ ] Route dosyasındaki yerel `ErrorComponent` kaldırılır; router'ın `defaultErrorComponent`'i kullanılır.
-- [ ] `_authenticated/products.tsx` → `_authenticated/products/index.tsx` + `$id.tsx`. Sonra taşımak `routeTree.gen.ts` ve link tiplerini yeniden üretmeyi gerektirir.
+- [x] `productsQuery` fabrikası route dosyasından `src/features/products/hooks/use-products.ts`'e taşınır — detay rotası ve mutation'lar aynı fabrikayı kullanacak.
+- [x] `columns` tanımı `src/features/products/components/columns.tsx`'e taşınır.
+- [x] Tablo iskeleti `src/features/products/components/` altına taşınır; satır sayısı `pageSize` ile uyumlu olur.
+- [ ] Route dosyasındaki yerel `ErrorComponent` kaldırılır; router'ın `defaultErrorComponent`'i kullanılır. `index.tsx` ve `$id.tsx` hâlâ yerel `ErrorComponent`/`pendingComponent` tanımlıyor — AGENTS.md § Ortak route bileşenleri kuralına aykırı, henüz temizlenmedi.
+- [x] `_authenticated/products.tsx` → `_authenticated/products/index.tsx` + `$id.tsx`. Sonra taşımak `routeTree.gen.ts` ve link tiplerini yeniden üretmeyi gerektirir.
 
 **Liste**
 
-- [ ] `validateSearch` şeması genişletilir: `q`, `categoryId`, `brandId`, `status`, `sort`, `dir`, `page`.
-- [ ] Sayfalama bağlantıları `search={(prev) => ({ ...prev, page })}` biçimine çevrilir — nesne biçimi filtreleri siliyor.
-- [ ] Arama kutusu (debounce) + kategori/marka filtreleri; filtre değişiminde `page` 1'e döner.
-- [ ] Kolon başlıklarına sıralama (`name` | `price` | `stock` | `updatedAt`).
-- [ ] Kolon genişlikleri `meta.className` + `table-fixed` ile sabitlenir.
-- [ ] Üç durum: loading (`pendingComponent` iskeleti), error (varsayılan fallback), empty (filtreli/filtresiz ayrımı).
-- [ ] Stok rozeti: `stock === 0` ve `stock <= minStock` ayrı gösterilir.
+- [x] `validateSearch` şeması genişletilir: `q`, `categoryId`, `brandId`, `status`, `sort`, `dir`, `page`.
+- [x] Sayfalama bağlantıları `search={(prev) => ({ ...prev, page })}` biçimine çevrilir — nesne biçimi filtreleri siliyor.
+- [x] Arama kutusu (debounce) + kategori/marka filtreleri; filtre değişiminde `page` 1'e döner.
+- [x] Kolon başlıklarına sıralama (`name` | `price` | `stock` | `updatedAt`).
+- [x] Kolon genişlikleri gerektiğinde `meta.className` ile sabitlenir (tablo `table-fixed` değil — bkz. `AGENTS.md` § Tablolar).
+- [x] Üç durum: loading (`pendingComponent` iskeleti), error (varsayılan fallback), empty (filtreli/filtresiz ayrımı).
+- [x] Stok rozeti: `stock === 0` ve `stock <= minStock` ayrı gösterilir.
 
 **Detay ve güncelleme**
 
-- [ ] `productQuery(id)` + `useProduct(id)`; `$id.tsx` loader'ı aynı fabrikayı kullanır.
-- [ ] Düzenleme formu (react-hook-form + zod); `PUT /products/{id}`'e `costPrice`, `supplierId`, `description` detaydan alınıp geri gönderilir.
-- [ ] `useUpdateProduct()` — `onSuccess`'te `['products']` invalidate.
-- [ ] Stok güncelleme (`PATCH /products/{id}/stock`).
+- [x] `productQuery(id)` + `useProduct(id)`; `$id.tsx` loader'ı aynı fabrikayı kullanır.
+- [x] Düzenleme formu (react-hook-form + zod); `PUT /products/{id}`'e `costPrice`, `supplierId`, `description` detaydan alınıp geri gönderilir.
+- [x] `useUpdateProduct()` — `onSuccess`'te `['products']` invalidate.
+- [ ] Stok güncelleme (`PATCH /products/{id}/stock`). Servis metodu (`products.service.ts`) yazıldı ama sarmalayan bir hook (`useUpdateProductStock()`) henüz yok.
 
-## Faz 3 — Lookup verileri
+**Oluşturma ve silme** (`AGENTS.md`'de scope'a alındı, aşağıdaki "Kapsam dışı" notunun yerini aldı)
 
-- [ ] `categories.service.ts`, `brands.service.ts`
-- [ ] `categoriesQuery()`, `brandsQuery()` + `useCategories()`, `useBrands()` — filtre select'lerinde kullanım.
-- [ ] Sabit listeler olduğu için yüksek `staleTime`.
+- [x] Ürün oluşturma ekranı (`product-create-form.tsx`, oluşturma/düzenleme arasında paylaşılan `product-form.tsx`).
+- [x] Onay dialoglu ürün silme (`delete-product-dialog.tsx`) — `useDeleteProduct()` sonrası `['products']` invalidate.
 
-Tedarikçi listesi yalnızca `PUT` gövdesindeki `supplierId` için gerekiyor; ayrı ekranı yok. Formda alan gösterilmeyecekse `suppliers.service.ts` yazılmaz.
+## Faz 3 — Lookup verileri 🔄 Devam ediyor
 
-## Faz 4 — İstatistikler
+- [x] `categories.service.ts`, `brands.service.ts`
+- [x] `categoriesQuery()`, `brandsQuery()` + `useCategories()`, `useBrands()` — filtre select'lerinde kullanım.
+- [ ] Sabit listeler olduğu için yüksek `staleTime`. Henüz hiçbir lookup hook'unda ayarlanmadı.
 
-- [ ] `stats.service.ts` + `statsQuery()` + `useStats()` — `GET /products/stats` özeti (toplam, tükenen, azalan), ürün listesinin üstünde kart olarak.
+Tedarikçi seçimi oluşturma/düzenleme formunda gösterildiği için `suppliers.service.ts` + `suppliersQuery()`/`useSuppliers()` yazıldı. Ayrı bir tedarikçi listeleme ekranı hâlâ yok — yalnızca form içindeki select için kullanılıyor.
+
+## Faz 4 — İstatistikler ✅ Tamamlandı
+
+- [x] `stats.service.ts` + `statsQuery()` + `useStats()` — `GET /products/stats` özeti (toplam, tükenen, azalan), ürün listesinin üstünde `StockSummaryCards` olarak.
 
 ## Faz 5 — Teslim
 
@@ -91,14 +96,9 @@ Tedarikçi listesi yalnızca `PUT` gövdesindeki `supplierId` için gerekiyor; a
 ## Açık kararlar
 
 - Background-refetch ve stale-data durumlarının görsel karşılığı henüz tanımlı değil (`AGENTS.md` § Loading / Error / Empty yalnızca üç temel durumu kapsıyor).
-- `react-hook-form` + `zod` kurulumu henüz yapılmadı — Faz 2 form işiyle gelecek. (`zod` `validateSearch` için zaten kurulu.)
-- Bonus senaryo (liste açıkken başka istemciden gelen güncellemenin görünmesi) için yaklaşım seçilmedi: polling / `refetchOnWindowFocus` / SSE.
-- Kullanıcı bilgisinin (`/auth/me`) arayüzde gösterilip gösterilmeyeceği belirsiz. Gösterilecekse `meQuery()` aynı fabrika üzerinden `useQuery` ile kullanılır.
-- Ürün satırına tıklanınca detaya gitme davranışı: satırın tamamı mı tıklanabilir olacak, yoksa ayrı bir işlem sütunu mu?
+- Bonus senaryo (liste açıkken başka istemciden gelen güncellemenin görünmesi) için yaklaşım seçilmedi: polling / `refetchOnWindowFocus` / SSE. Şu an products query'sinde bu yönde bir ayar yok.
 
 ## Kapsam dışı (şimdilik)
 
 - SSR / SEO — proje tamamen istemci taraflı.
-- Ürün oluşturma ve silme — görev web tarafında yalnızca listeleme, detay ve güncelleme istiyor.
-- Tedarikçi ekranı — `GET /suppliers` yalnızca `PUT` gövdesi için gerekli.
-- Bildirimler (`sonner`) kurulumu — ilk mutation'a ihtiyaç doğduğunda.
+- Ayrı bir tedarikçi listeleme ekranı — `GET /suppliers` yalnızca form içindeki `supplierId` select'i için kullanılıyor.
