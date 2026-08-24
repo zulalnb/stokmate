@@ -53,6 +53,12 @@ export interface ProductListResponse {
   pageSize: number
 }
 
+export interface ProductStats {
+  total: number
+  outOfStock: number
+  lowStock: number
+}
+
 export interface ProductDetail extends Product {
   costPrice: number
   supplierId: number

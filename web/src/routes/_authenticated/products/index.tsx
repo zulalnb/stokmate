@@ -15,10 +15,12 @@ import { Button } from '@/components/ui/button'
 import { DataTable } from '@/features/products/components/data-table'
 import { ProductFilterBar } from '@/features/products/components/product-filter-bar'
 import { ProductsTableSkeleton } from '@/features/products/components/products-table-skeleton'
+import { StockSummaryCards } from '@/features/products/components/stock-summary-cards'
 import { TablePagination } from '@/features/products/components/table-pagination'
 import { brandsQuery } from '@/features/products/hooks/use-brands'
 import { categoriesQuery } from '@/features/products/hooks/use-categories'
 import { productsQuery } from '@/features/products/hooks/use-products'
+import { statsQuery } from '@/features/products/hooks/use-stats'
 import { columns } from '@/features/products/components/columns'
 
 const productsSearchSchema = z.object({
@@ -77,6 +79,7 @@ export const Route = createFileRoute('/_authenticated/products/')({
       context.queryClient.ensureQueryData(productsQuery(deps)),
       context.queryClient.ensureQueryData(categoriesQuery()),
       context.queryClient.ensureQueryData(brandsQuery()),
+      context.queryClient.ensureQueryData(statsQuery()),
     ]),
   component: ProductsPage,
   errorComponent: ErrorComponent,
@@ -93,6 +96,7 @@ function ProductsPage() {
   )
   const { data: categories } = useSuspenseQuery(categoriesQuery())
   const { data: brands } = useSuspenseQuery(brandsQuery())
+  const { data: stats } = useSuspenseQuery(statsQuery())
 
   const hasActiveFilters = Boolean(q || categoryId || brandId || status)
 
@@ -119,37 +123,41 @@ function ProductsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 overflow-auto px-4 lg:px-6">
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-        <ProductFilterBar
-          q={q}
-          categoryId={categoryId}
-          brandId={brandId}
-          status={status}
-          categories={categories}
-          brands={brands}
+    <>
+      <StockSummaryCards stats={stats} />
+
+      <div className="flex flex-col gap-4 overflow-auto px-4 pt-1 lg:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <ProductFilterBar
+            q={q}
+            categoryId={categoryId}
+            brandId={brandId}
+            status={status}
+            categories={categories}
+            brands={brands}
+            hasActiveFilters={hasActiveFilters}
+            onSearchChange={(value) => updateFilters({ q: value.trim() || undefined })}
+            onFilterChange={updateFilters}
+            onClearFilters={clearFilters}
+          />
+
+          <Button nativeButton={false} render={<Link to="/products/new" />}>
+            <Plus className="size-4" />
+            <span className="hidden md:inline">Ürün ekle</span>
+          </Button>
+        </div>
+
+        <DataTable
+          data={data?.items ?? []}
+          columns={columns}
+          sorting={sorting}
+          onSortingChange={handleSortingChange}
           hasActiveFilters={hasActiveFilters}
-          onSearchChange={(value) => updateFilters({ q: value.trim() || undefined })}
-          onFilterChange={updateFilters}
           onClearFilters={clearFilters}
         />
 
-        <Button nativeButton={false} render={<Link to="/products/new" />}>
-          <Plus className="size-4" />
-          <span className='hidden md:inline'>Ürün ekle</span>
-        </Button>
+        <TablePagination page={data.page} total={data.total} pageSize={data.pageSize} />
       </div>
-
-      <DataTable
-        data={data?.items ?? []}
-        columns={columns}
-        sorting={sorting}
-        onSortingChange={handleSortingChange}
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={clearFilters}
-      />
-
-      <TablePagination page={data.page} total={data.total} pageSize={data.pageSize} />
-    </div>
+    </>
   )
 }
