@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useLogin } from '@/hooks/use-auth';
 
 export default function LoginScreen() {
@@ -23,9 +24,11 @@ export default function LoginScreen() {
           StokMate
         </ThemedText>
 
-        <ThemedView type="backgroundElement" className="gap-4 rounded-3xl p-6">
-          <TextInput
-            className="h-12 rounded-lg border border-background-selected px-4 text-base text-text placeholder:text-text-secondary dark:border-background-selected-dark dark:text-text-dark"
+        <ThemedView
+          type="backgroundElement"
+          className="gap-4 rounded-3xl p-6"
+          style={{ borderCurve: 'continuous' }}>
+          <Input
             placeholder="E-posta"
             autoCapitalize="none"
             autoComplete="email"
@@ -33,8 +36,7 @@ export default function LoginScreen() {
             value={email}
             onChangeText={setEmail}
           />
-          <TextInput
-            className="h-12 rounded-lg border border-background-selected px-4 text-base text-text placeholder:text-text-secondary dark:border-background-selected-dark dark:text-text-dark"
+          <Input
             placeholder="Şifre"
             autoCapitalize="none"
             autoComplete="password"
@@ -49,18 +51,7 @@ export default function LoginScreen() {
             </ThemedText>
           )}
 
-          <Pressable
-            className="h-12 items-center justify-center rounded-lg bg-accent active:opacity-80 disabled:opacity-60"
-            onPress={handleSubmit}
-            disabled={login.isPending}>
-            {login.isPending ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <ThemedText type="smallBold" className="text-white">
-                Giriş Yap
-              </ThemedText>
-            )}
-          </Pressable>
+          <Button title="Giriş Yap" onPress={handleSubmit} loading={login.isPending} />
         </ThemedView>
       </SafeAreaView>
     </ThemedView>
