@@ -32,9 +32,26 @@ export type ProductDetail = Product & {
   description: string;
 };
 
+export type ProductsQuery = {
+  q?: string;
+  categoryId?: number | null;
+  brandId?: number | null;
+  status?: number | null;
+  sort?: 'name' | 'price' | 'stock' | 'updatedAt';
+  dir?: 'asc' | 'desc';
+};
+
 export const productsService = {
-  getProducts: (page: number, pageSize: number) =>
-    apiClient.get<ProductsResponse>(`/products?page=${page}&pageSize=${pageSize}`),
+  getProducts: (page: number, pageSize: number, query: ProductsQuery = {}) => {
+    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+    if (query.q) params.set('q', query.q);
+    if (query.categoryId) params.set('categoryId', String(query.categoryId));
+    if (query.brandId) params.set('brandId', String(query.brandId));
+    if (query.status) params.set('status', String(query.status));
+    if (query.sort) params.set('sort', query.sort);
+    if (query.dir) params.set('dir', query.dir);
+    return apiClient.get<ProductsResponse>(`/products?${params.toString()}`);
+  },
   getProduct: (id: number) => apiClient.get<ProductDetail>(`/products/${id}`),
   updateStock: (id: number, stock: number) => apiClient.patch<Product>(`/products/${id}/stock`, { stock }),
 };

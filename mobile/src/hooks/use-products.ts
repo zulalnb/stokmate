@@ -1,13 +1,13 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-import { productsService } from '@/api/services/products.service';
+import { type ProductsQuery, productsService } from '@/api/services/products.service';
 
 const PAGE_SIZE = 20;
 
-export function useProducts() {
+export function useProducts(query: ProductsQuery = {}) {
   return useInfiniteQuery({
-    queryKey: ['products'],
-    queryFn: ({ pageParam }) => productsService.getProducts(pageParam, PAGE_SIZE),
+    queryKey: ['products', query],
+    queryFn: ({ pageParam }) => productsService.getProducts(pageParam, PAGE_SIZE, query),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const totalPages = Math.ceil(lastPage.total / lastPage.pageSize);

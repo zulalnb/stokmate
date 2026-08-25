@@ -17,6 +17,15 @@ export default function ProtectedLayout() {
         }}
       />
       <Stack.Screen name="product/[id]" />
+      <Stack.Screen
+        name="filter"
+        options={{
+          presentation: "formSheet",
+          title: "Filtrele",
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: [0.6, 1],
+        }}
+      />
     </Stack>
   );
 }

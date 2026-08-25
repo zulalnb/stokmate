@@ -2,7 +2,13 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Pressable, RefreshControl, ScrollView, View } from "react-native";
+import {
+  Keyboard,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  View,
+} from "react-native";
 import {
   KeyboardAwareScrollView,
   KeyboardStickyView,
@@ -151,7 +157,12 @@ export default function ProductDetailScreen() {
 
   const handleUpdateStock = () => {
     if (!isStockValid || !isStockChanged) return;
-    updateStock.mutate(parsedStock, { onSuccess: () => setStockDraft(null) });
+    updateStock.mutate(parsedStock, {
+      onSuccess: () => {
+        setStockDraft(null);
+        Keyboard.dismiss();
+      },
+    });
   };
 
   return (
