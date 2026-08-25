@@ -229,11 +229,6 @@ export default function ProductDetailScreen() {
               Geçerli bir stok değeri girin
             </ThemedText>
           )}
-          {updateStock.isError && (
-            <ThemedText type="small" className="text-danger">
-              {updateStock.error.message}
-            </ThemedText>
-          )}
         </View>
 
         <View className="gap-1">

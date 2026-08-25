@@ -6,9 +6,11 @@ import { Stack } from 'expo-router/stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import Toast from 'react-native-toast-message';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ThemedView } from '@/components/themed-view';
+import { toastConfig } from '@/components/ui/toast-config';
 import { useBootstrapSession, useSession } from '@/hooks/use-auth';
 import { queryClient } from '@/lib/query-client';
 
@@ -37,6 +39,7 @@ export default function RootLayout() {
               </Stack.Protected>
             </Stack>
           )}
+          <Toast config={toastConfig} />
         </ThemeProvider>
       </QueryClientProvider>
     </KeyboardProvider>
