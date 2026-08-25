@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useSyncExternalStore } from 'react';
 
-import { refreshSession } from '@/api/client';
+import { refreshSession } from '@/api/interceptors';
 import { authService } from '@/api/services/auth.service';
 import { authStorage } from '@/lib/auth-storage';
 import { sessionStore } from '@/lib/session-store';

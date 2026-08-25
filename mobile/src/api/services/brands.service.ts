@@ -1,4 +1,4 @@
-import { apiClient } from '../client';
+import { apiClient } from '../axios-client';
 
 export type Brand = {
   id: number;
@@ -6,5 +6,5 @@ export type Brand = {
 };
 
 export const brandsService = {
-  getBrands: () => apiClient.get<Brand[]>('/brands'),
+  getBrands: () => apiClient.get<Brand[]>('/brands').then((res) => res.data),
 };

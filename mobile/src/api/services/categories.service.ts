@@ -1,4 +1,4 @@
-import { apiClient } from '../client';
+import { apiClient } from '../axios-client';
 
 export type Category = {
   id: number;
@@ -8,5 +8,5 @@ export type Category = {
 };
 
 export const categoriesService = {
-  getCategories: () => apiClient.get<Category[]>('/categories'),
+  getCategories: () => apiClient.get<Category[]>('/categories').then((res) => res.data),
 };

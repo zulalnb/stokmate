@@ -1,4 +1,4 @@
-import { apiClient } from '../client';
+import { apiClient } from '../axios-client';
 
 export type Product = {
   id: number;
@@ -42,16 +42,11 @@ export type ProductsQuery = {
 };
 
 export const productsService = {
-  getProducts: (page: number, pageSize: number, query: ProductsQuery = {}) => {
-    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-    if (query.q) params.set('q', query.q);
-    if (query.categoryId) params.set('categoryId', String(query.categoryId));
-    if (query.brandId) params.set('brandId', String(query.brandId));
-    if (query.status) params.set('status', String(query.status));
-    if (query.sort) params.set('sort', query.sort);
-    if (query.dir) params.set('dir', query.dir);
-    return apiClient.get<ProductsResponse>(`/products?${params.toString()}`);
-  },
-  getProduct: (id: number) => apiClient.get<ProductDetail>(`/products/${id}`),
-  updateStock: (id: number, stock: number) => apiClient.patch<Product>(`/products/${id}/stock`, { stock }),
+  getProducts: (page: number, pageSize: number, query: ProductsQuery = {}) =>
+    apiClient
+      .get<ProductsResponse>('/products', { params: { page, pageSize, ...query } })
+      .then((res) => res.data),
+  getProduct: (id: number) => apiClient.get<ProductDetail>(`/products/${id}`).then((res) => res.data),
+  updateStock: (id: number, stock: number) =>
+    apiClient.patch<Product>(`/products/${id}/stock`, { stock }).then((res) => res.data),
 };

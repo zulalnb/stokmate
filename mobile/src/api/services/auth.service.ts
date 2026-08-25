@@ -1,6 +1,6 @@
 import type { AuthUser } from '@/lib/session-store';
 
-import { apiClient } from '../client';
+import { apiClient } from '../axios-client';
 
 type LoginResponse = {
   accessToken: string;
@@ -11,6 +11,7 @@ type LoginResponse = {
 
 export const authService = {
   login: (email: string, password: string) =>
-    apiClient.post<LoginResponse>('/auth/login', { email, password }),
-  logout: (refreshToken: string) => apiClient.post<void>('/auth/logout', { refreshToken }),
+    apiClient.post<LoginResponse>('/auth/login', { email, password }).then((res) => res.data),
+  logout: (refreshToken: string) =>
+    apiClient.post<void>('/auth/logout', { refreshToken }).then(() => undefined),
 };
