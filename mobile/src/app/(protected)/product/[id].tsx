@@ -173,7 +173,7 @@ export default function ProductDetailScreen() {
         keyboardShouldPersistTaps="handled"
         bottomOffset={100}
         contentContainerClassName="gap-4 px-4 pt-4 pb-safe"
-        className="flex-1 bg-white"
+        className="flex-1 bg-white dark:bg-black"
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }

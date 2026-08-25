@@ -43,8 +43,8 @@ export function ProductRow({
 
   return (
     <View
-      className="flex-row items-center gap-3 border-b border-background-selected px-4 dark:border-background-selected-dark"
-      style={{ height: PRODUCT_ROW_HEIGHT }}
+      className="flex-row items-center gap-3 border-b border-background-selected px-4 py-2 dark:border-background-selected-dark"
+      style={{ minHeight: PRODUCT_ROW_HEIGHT }}
     >
       <View
         className="items-center justify-center overflow-hidden rounded-lg bg-background-selected dark:bg-background-selected-dark"
@@ -75,7 +75,12 @@ export function ProductRow({
           {name}
         </ThemedText>
 
-        <ThemedText type="small" themeColor="textSecondary" numberOfLines={2} selectable>
+        <ThemedText
+          type="small"
+          themeColor="textSecondary"
+          numberOfLines={2}
+          selectable
+        >
           <ThemedText type="smallBold" themeColor="text" className="text-base">
             {formatKurus(price)}
           </ThemedText>
