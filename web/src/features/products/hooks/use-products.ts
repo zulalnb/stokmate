@@ -1,6 +1,7 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { productsService } from '@/api/services/products.service'
+import { PRODUCTS_REFETCH_INTERVAL_MS } from '@/lib/constants'
 import type {
   CreateProductPayload,
   ProductDetail,
@@ -12,6 +13,7 @@ export const productsQuery = (filters: ProductFilters) =>
   queryOptions({
     queryKey: ['products', filters],
     queryFn: () => productsService.getProducts(filters),
+    refetchInterval: PRODUCTS_REFETCH_INTERVAL_MS,
   })
 
 export function useProducts(filters: ProductFilters) {

@@ -157,8 +157,19 @@ Ayrımın ölçüsü zaman: kural her görevde geçerli, kurulum bir kez yapıld
 
 ---
 
-## Açık — karar verilmedi
+## Başka istemciden gelen güncellemenin listede görünmesi
 
-**Bonus senaryo:** Liste açıkken başka bir istemciden gelen güncellemenin görünmesi. Seçenekler: `refetchInterval` ile polling, `refetchOnWindowFocus`, veya .NET tarafına SSE ucu. Karar verildiğinde bu bölüm yukarı taşınır ve `ROADMAP.md` § Açık kararlar güncellenir.
+**Seçilen:** 60 saniyelik `refetchInterval` — `productsQuery()` ve `statsQuery()` fabrikalarında
+**Elenen:** Yalnızca `refetchOnWindowFocus`; .NET tarafına SSE ucu
+
+Senaryo, listenin açık ve sekmenin odakta olduğu durum. `refetchOnWindowFocus` zaten React Query varsayılanı olarak açık, ama yalnızca sekmeye geri dönüldüğünde çalışıyor; sürekli açık duran bir listeyi hiç tazelemiyor — yani tek başına bu senaryoyu karşılamıyor. SSE gerçek zamanlı ve en temiz sonucu verirdi, fakat backend'e yeni bir uç yazılmasını gerektiriyor; bu iş şu an kapsam dışı.
+
+Polling ayarı, § `queryOptions` fabrikası zorunluluğu gereği fabrikanın içinde duruyor; rotada veya component'te tekrarlanmıyor. Aralık iki fabrikada da `lib/constants.ts`'teki `PRODUCTS_REFETCH_INTERVAL_MS` üzerinden okunuyor, böylece tablo ile üstündeki özet kartları aynı ritimde tazeleniyor. `refetchIntervalInBackground` varsayılanda (`false`) bırakıldı: sekme arka plandayken sayaç duruyor, geri dönüldüğünde `refetchOnWindowFocus` devralıyor.
+
+**Bedel:** Odaktaki bir sekme her query için saatte ~60 istek atıyor. Güncelleme en geç 60 saniye gecikmeyle görünüyor. Arka plandaki tazelemenin görsel karşılığı yok — tablo sessizce değişiyor (bkz. `ROADMAP.md` § Açık kararlar).
+
+---
+
+## Açık — karar verilmedi
 
 **Satır tıklaması:** Ürün satırının tamamı detaya mı gidecek, yoksa ayrı bir işlem sütunu mu olacak? Detay rotasına başlamadan önce kararlaştırılmalı.

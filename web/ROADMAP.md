@@ -88,15 +88,14 @@ Tedarikçi seçimi oluşturma/düzenleme formunda gösterildiği için `supplier
 
 - [ ] `docs/decisions.md` tamamlanır (Faz 0-4 kararları).
 - [ ] `README.md` — çalıştırma adımları, varsayımlar, kütüphane gerekçeleri, yetişmeyenler.
-- [ ] Bonus senaryo uygulanır veya kapsam dışı olarak README'de belirtilir.
+- [x] Bonus senaryo uygulanır veya kapsam dışı olarak README'de belirtilir. — `productsQuery()` ve `statsQuery()`'de 60 sn `refetchInterval` (bkz. `docs/decisions.md`).
 - [ ] `.env.example` ve `.gitignore` kontrolü; repo temiz klonda çalışır durumda.
 
 ---
 
 ## Açık kararlar
 
-- Background-refetch ve stale-data durumlarının görsel karşılığı henüz tanımlı değil (`AGENTS.md` § Loading / Error / Empty yalnızca üç temel durumu kapsıyor).
-- Bonus senaryo (liste açıkken başka istemciden gelen güncellemenin görünmesi) için yaklaşım seçilmedi: polling / `refetchOnWindowFocus` / SSE. Şu an products query'sinde bu yönde bir ayar yok.
+- Background-refetch ve stale-data durumlarının görsel karşılığı henüz tanımlı değil (`AGENTS.md` § Loading / Error / Empty yalnızca üç temel durumu kapsıyor). 60 sn'lik polling geldiği için bu artık listede de görünür bir boşluk: tazeleme sessizce oluyor.
 
 ## Kapsam dışı (şimdilik)
 
