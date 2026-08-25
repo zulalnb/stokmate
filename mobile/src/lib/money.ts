@@ -1,3 +1,8 @@
+ export const currencyFormatter = new Intl.NumberFormat('tr-TR', {
+  style: 'currency',
+  currency: 'TRY',
+})
+
 export function formatKurus(kurus: number): string {
-  return `${(kurus / 100).toFixed(2).replace('.', ',')} ₺`;
+  return currencyFormatter.format(kurus / 100)
 }

@@ -4,36 +4,12 @@ import { View } from "react-native";
 
 import type { Product } from "@/api/services/products.service";
 import { ThemedText } from "@/components/themed-text";
-import {
-  Badge,
-  type BadgeIcon,
-  type BadgeVariant,
-} from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { formatKurus } from "@/lib/money";
+import { PRODUCT_STATUS_CONFIG } from "@/lib/product-status";
 
 export const PRODUCT_ROW_HEIGHT = 120;
 const THUMBNAIL_SIZE = 80;
-
-const PRODUCT_STATUS_CONFIG: Record<
-  number,
-  { label: string; variant: BadgeVariant; icon: BadgeIcon }
-> = {
-  1: {
-    label: "Aktif",
-    variant: "success",
-    icon: { sfSymbol: "checkmark.circle.fill", ionicon: "checkmark-circle" },
-  },
-  2: {
-    label: "Pasif",
-    variant: "neutral",
-    icon: { sfSymbol: "pause.circle.fill", ionicon: "pause-circle" },
-  },
-  3: {
-    label: "Üretim Durduruldu",
-    variant: "danger",
-    icon: { sfSymbol: "xmark.circle.fill", ionicon: "close-circle" },
-  },
-};
 
 export type ProductRowProps = Pick<
   Product,

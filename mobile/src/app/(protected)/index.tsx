@@ -1,5 +1,6 @@
+import { Link } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, type ListRenderItemInfo, View } from 'react-native';
+import { ActivityIndicator, FlatList, type ListRenderItemInfo, Pressable, View } from 'react-native';
 
 import type { Product } from '@/api/services/products.service';
 import { PRODUCT_ROW_HEIGHT, ProductRow } from '@/components/product-row';
@@ -11,17 +12,21 @@ import { useProducts } from '@/hooks/use-products';
 
 function renderProduct({ item }: ListRenderItemInfo<Product>) {
   return (
-    <ProductRow
-      name={item.name}
-      barcode={item.barcode}
-      stock={item.stock}
-      minStock={item.minStock}
-      brandName={item.brandName}
-      categoryName={item.categoryName}
-      status={item.status}
-      price={item.price}
-      imageUrl={item.imageUrl}
-    />
+    <Link href={{ pathname: '/product/[id]', params: { id: String(item.id) } }} asChild>
+      <Pressable className="active:bg-background-selected dark:active:bg-background-selected-dark">
+        <ProductRow
+          name={item.name}
+          barcode={item.barcode}
+          stock={item.stock}
+          minStock={item.minStock}
+          brandName={item.brandName}
+          categoryName={item.categoryName}
+          status={item.status}
+          price={item.price}
+          imageUrl={item.imageUrl}
+        />
+      </Pressable>
+    </Link>
   );
 }
 

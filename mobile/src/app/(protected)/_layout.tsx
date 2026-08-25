@@ -16,6 +16,7 @@ export default function ProtectedLayout() {
           }), */
         }}
       />
+      <Stack.Screen name="product/[id]" />
     </Stack>
   );
 }
