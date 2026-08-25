@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, ImageOff } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -65,7 +65,24 @@ function ProductDetailPage() {
             />
           </CardAction>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-6">
+          <div className="bg-muted flex h-40 w-40 items-center justify-center overflow-hidden rounded-lg border">
+            {product.imageUrl ? (
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                width={160}
+                height={160}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <ImageOff className="text-muted-foreground size-6" aria-label="Görsel yok" />
+            )}
+          </div>
+
           <ProductEditForm product={product} />
         </CardContent>
       </Card>

@@ -433,6 +433,14 @@ Backend davranışını tahmin ederek request modeli değiştirme.
 
 ---
 
+## Product image
+
+`imageUrl` **null olabilir** — her üründe görsel garanti değildir. `lib/types.ts`'te `imageUrl: string | null` olarak tiplenir.
+
+`imageUrl`'i doğrudan bir `<img src>`'e geçirmeden önce null kontrolü yap; `null` durumunda placeholder göster (bkz. `routes/_authenticated/products/$id.tsx`). Boş string'e veya varsayılan bir görsel URL'sine düşme.
+
+---
+
 ## Enums
 
 `unit` ve `status` API'den sayısal gelir. UI'da ham sayı gösterme; etiketleri `lib/enums.ts` içindeki `as const` map'lerinden al.

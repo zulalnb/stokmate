@@ -21,7 +21,7 @@ export interface Product {
   name: string
   sku: string
   barcode: string
-  imageUrl: string
+  imageUrl: string | null
   categoryId: number
   categoryName: string
   brandId: number
