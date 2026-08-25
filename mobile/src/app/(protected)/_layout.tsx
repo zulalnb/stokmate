@@ -1,5 +1,6 @@
 import { Stack } from "expo-router/stack";
-import { Platform } from "react-native";
+
+import { LogoutButton } from "@/components/logout-button";
 
 export default function ProtectedLayout() {
   return (
@@ -8,12 +9,7 @@ export default function ProtectedLayout() {
         name="index"
         options={{
           title: "Ürünler",
-         /*  headerLargeTitle: true,
-          headerTransparent: Platform.select({
-            ios: true,
-            web: true,
-            android: false,
-          }), */
+          headerRight: () => <LogoutButton />,
         }}
       />
       <Stack.Screen name="product/[id]" />
