@@ -4,19 +4,15 @@ Bu dosya, mobile/ için verilen mimari/kütüphane kararlarını kayıt altına 
 
 ---
 
-## Axios yerine fetch
+## Axios, web ile aynı mimariyle
 
-**Seçilen yol:** `expo/fetch` tabanlı, elle yazılmış `src/api/client.ts` wrapper'ı.
+**Seçilen yol:** Axios — `src/api/axios-client.ts` (tek instance + `/auth/refresh` için interceptor'sız ikinci instance) + `src/api/interceptors.ts`, `web/src/api/`'deki mimariyle birebir aynı yapı.
 
-**Elenen alternatif:** axios (+ interceptor'lar).
+**Elenen alternatif:** Elle yazılmış `fetch` wrapper'ı (`src/api/client.ts`) — önceki karardı, kaldırıldı.
 
-**Gerekçe:**
-- `mobile/.agents/skills/expo-data-fetching` skill'i açıkça axios'tan kaçınmayı, `expo/fetch`'i tercih etmeyi öneriyor.
-- Axios'un asıl cazibesi interceptor'lar; aynı davranış (Bearer header ekleme, 401'de refresh) küçük bir wrapper fonksiyonla, bağımlılık eklemeden elde ediliyor — `client.ts` zaten bunu yapıyor.
-- Axios mobil JS bundle'ına gerçek bir ağırlık ekliyor; bu ağırlığın karşılığında elde edilen özellik yok.
-- Eskiden axios'un tercih edilme sebebi RN'in yerleşik fetch'inin timeout/cancellation eksikliğiydi; `AbortController` bu gerekçeyi ortadan kaldırdı.
+**Gerekçe:** Web ile mobile'ın aynı HTTP mimarisini paylaşması istendi; iki platformu bilen bir geliştirici aynı zihinsel modeli (axios-client + interceptors + errors + services) bulsun diye. Mobile'a özgü proaktif refresh kontrolü (`isAccessTokenExpiringSoon`) bilinçli olarak korundu — web'de olmayan bir davranış, ama request interceptor'ın içine taşındı.
 
-**Bedel:** Axios'un daha zengin config/transform kısayolları yok; bu davranışlar `client.ts` içinde elle yazıldı.
+**Bedel:** Axios'un mobil bundle'a eklediği ağırlık kabul edildi; karşılığında iki platform arasında kod/davranış paritesi ve tek bir dokümante mimari elde edildi.
 
 ---
 
