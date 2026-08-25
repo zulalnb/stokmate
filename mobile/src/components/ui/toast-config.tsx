@@ -4,8 +4,8 @@ import { BaseToast, type ToastConfig, type ToastConfigParams } from 'react-nativ
 
 const COLORS = {
   background: { light: '#F0F0F3', dark: '#212225' },
-  text: { light: '#000000', dark: '#ffffff' },
-  textSecondary: { light: '#60646C', dark: '#B0B4BA' },
+  foreground: { light: '#000000', dark: '#ffffff' },
+  foregroundSecondary: { light: '#60646C', dark: '#B0B4BA' },
   accent: '#3c87f7',
   danger: '#DC2626',
 } as const;
@@ -33,12 +33,12 @@ function AppToast({
       text1Style={{
         fontSize: 14,
         fontWeight: '700',
-        color: isDark ? COLORS.text.dark : COLORS.text.light,
+        color: isDark ? COLORS.foreground.dark : COLORS.foreground.light,
       }}
       text2Style={{
         fontSize: 13,
         fontWeight: '500',
-        color: isDark ? COLORS.textSecondary.dark : COLORS.textSecondary.light,
+        color: isDark ? COLORS.foregroundSecondary.dark : COLORS.foregroundSecondary.light,
       }}
       renderLeadingIcon={() => (
         <Ionicons name={icon} size={22} color={accentColor} style={{ alignSelf: 'center', marginLeft: 12 }} />

@@ -14,8 +14,8 @@ const TYPE_CLASSES = {
 } as const;
 
 const COLOR_CLASSES = {
-  text: 'text-text dark:text-text-dark',
-  textSecondary: 'text-text-secondary dark:text-text-secondary-dark',
+  text: 'text-foreground dark:text-foreground-dark',
+  textSecondary: 'text-foreground-secondary dark:text-foreground-secondary-dark',
 } as const;
 
 export type ThemedTextProps = TextProps & {

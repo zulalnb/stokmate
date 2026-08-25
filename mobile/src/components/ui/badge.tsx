@@ -23,7 +23,7 @@ const VARIANT_CLASSES: Record<
   },
   neutral: {
     badgeClassName: 'bg-background-selected dark:bg-background-selected-dark',
-    textClassName: 'text-text-secondary dark:text-text-secondary-dark',
+    textClassName: 'text-foreground-secondary dark:text-foreground-secondary-dark',
     iconColor: { light: '#60646C', dark: '#B0B4BA' },
   },
   danger: {
