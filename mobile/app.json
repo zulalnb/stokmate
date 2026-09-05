@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "stokmate",
+    "slug": "stokmate",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "stokmate",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.anonymous.mobile"
+      "bundleIdentifier": "com.anonymous.stokmate"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +19,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.mobile"
+      "package": "com.anonymous.stokmate"
     },
     "web": {
       "output": "static",
@@ -43,9 +43,7 @@
     },
     "extra": {
       "router": {},
-      "eas": {
-        "projectId": "f254cf61-7d5d-417c-a5bf-937fac46a84c"
-      }
+      "eas": {}
     }
   }
 }
