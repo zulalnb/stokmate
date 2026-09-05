@@ -13,22 +13,13 @@ The application:
 - The UI is built with shadcn/ui (`base-vega` style, Base UI-based) + Tailwind.
 - Tables are built with `@tanstack/react-table`.
 
-The technology stack is fixed. Get user approval before adding any new dependency.
+The technology stack is fixed.
 
 ---
 
 ## Working Rules
 
-- Preserve existing behavior unless the task explicitly changes it.
-- Do not expand the scope of the requested work.
-- Do not write code in advance for something you think will be needed in the future.
-- Do not create routes, components, hooks, utilities, or features that the user did not request.
-- Work only on the requested file or screen at a time.
-- Do not touch unrelated files.
-- Stop when a piece of work is complete and leave it for the user to review.
-- If backend behavior is unknown, do not make assumptions; read `api/API.md`.
-- If domain terminology is unclear or contradictory, do not invent a product decision; ask the user for clarification.
-- Do not weaken security rules on the client side.
+Shared working rules are defined in the repository-level `AGENTS.md`.
 
 ---
 
@@ -45,8 +36,6 @@ Before writing code, review the documentation relevant to the task. Priority ord
 The spec takes precedence over the code. Do not make assumptions about API behavior.
 
 Decision rationales are documented in `docs/DECISIONS.md`. When making a new architectural or library decision, add a short heading there: selected approach, rejected alternative, rationale, and trade-off.
-
-If this file conflicts with another document, do not silently choose one; report the conflict to the user.
 
 ---
 
@@ -459,8 +448,6 @@ The `GET /products` response does not contain `totalPages`. Calculate it with `M
 
 ## UI
 
-All user-facing text must be **Turkish**; code, comments, and commit messages must be **English**.
-
 UI text:
 
 - Must use sentence case and avoid unnecessary filler.
@@ -514,21 +501,13 @@ Notifications are handled in the UI layer. `sonner` may be used at the component
 
 - File names use **kebab-case**: `app-sidebar.tsx`, `route-pending.tsx`, `use-products.ts`, `columns.tsx`. Exported component names remain PascalCase. (The shadcn CLI generates kebab-case; everything was standardized to this style across the project.)
 - Do not write comments; use descriptive naming instead.
-- Do not leave `console.log`.
 - Do not import raw `axios`; all requests go through `src/api/axios-client.ts`.
 
 ---
 
 ## Scope Control
 
-Do not refactor outside the requested task. When the user asks for only a single component:
-
-- do not create a new hook,
-- do not create a new utility,
-- do not add a new route,
-- do not add a new dependency,
-- do not change the architecture,
-- do not edit unrelated files.
+For a component-only task, do not change the architecture.
 
 If a problem cannot be solved within the current task's scope, report it to the user instead of expanding the scope yourself.
 

@@ -15,6 +15,19 @@ Once the target is known, scope work to that project only:
 - Task is for `web/` — do not read, browse or analyze files inside `mobile/`.
 - Task is for `mobile/` — do not read, browse or analyze files inside `web/`.
 
+## Shared working rules
+
+- Preserve existing behavior unless the task explicitly changes it.
+- Do not expand the scope of the requested work or touch unrelated files.
+- Do not add dependencies without user approval.
+- Do not implement speculative features or abstractions.
+- If API behavior is unknown, read `api/API.md`; do not make assumptions.
+- If terminology or requirements are unclear or contradictory, ask the user instead of making a product decision.
+- Do not weaken client-side security rules.
+- If project documentation conflicts, report it rather than silently choosing one.
+- User-facing text is Turkish; code and commit messages are English.
+- Do not leave `console.log` statements.
+
 ## Do not explore `api/`
 
 Agents must not read, browse or analyze files inside `api/`. Work stays scoped to `web/` or `mobile/` unless explicitly told otherwise.
