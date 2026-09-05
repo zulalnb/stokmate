@@ -133,29 +133,6 @@ The shadcn CLI generates files in kebab-case, and these files are not manually e
 
 ---
 
-## Copying shared code between web and mobile
-
-**Selected:** `types.ts`, `money.ts`, `enums.ts` as separate copies in both projects
-**Rejected:** pnpm workspace + `packages/shared`
-
-React Native is sensitive to workspace hoisting due to Metro bundler;
-configuring `watchFolders` and `extraNodeModules`, aligning TypeScript paths on both sides, and the risk of different behavior in EAS build vs. local. At this scale, setup cost outweighs the benefit.
-
-**Cost:** If a shared file changes, the other copy must be updated manually. In a real project, `packages/shared` would be the right solution.
-
----
-
-## Documentation separation
-
-**Selected:** `AGENTS.md` (always-valid rules), `INSTALLATION.md` (setup and pitfalls), `docs/DECISIONS.md` (rationales), `.specs/` (feature plans)
-**Rejected:** A single large document or a separate `ARCHITECTURE.md`
-
-The separation is based on time: rules are valid for every task, installation is done once, decisions were made in the past, specs are for the current work. `AGENTS.md` is read every round, so including setup details would reduce its signal. Architectural rules were not moved to a separate file; a separate file would add an extra navigation step each round and the current size of `AGENTS.md` doesn't warrant splitting.
-
-**Cost:** Each time, you must decide which file a piece of information belongs to; if the boundary becomes unclear, the two files may diverge.
-
----
-
 ## Seeing updates from another client in the list
 
 **Selected:** 60-second `refetchInterval` — in `productsQuery()` and `statsQuery()` factories
