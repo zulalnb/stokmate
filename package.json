@@ -1,0 +1,25 @@
+{
+  "name": "stokmate",
+  "version": "0.1.0",
+  "description": "StokMate — retail inventory management system with web, mobile, and .NET API",
+  "homepage": "https://github.com/zulalnb/stokmate#readme",
+  "bugs": {
+    "url": "https://github.com/zulalnb/stokmate/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zulalnb/stokmate.git"
+  },
+  "license": "MIT",
+  "author": "",
+  "type": "commonjs",
+  "scripts": {
+    "dev:web": "npm run dev --prefix web",
+    "dev:mobile": "npm run start --prefix mobile",
+    "dev:api": "dotnet run --project api/src/StokMate.Api",
+    "build:web": "npm run build --prefix web",
+    "build:api": "dotnet build api/src/StokMate.Api",
+    "lint:web": "npm run lint --prefix web",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
