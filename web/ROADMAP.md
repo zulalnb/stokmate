@@ -1,12 +1,12 @@
-# Yol Haritası
+# Roadmap
 
-`web/` projesinin planlanan ilerleyişi. Kurulum detayları için `INSTALLATION.md`, kurallar için `AGENTS.md`, karar gerekçeleri için `docs/decisions.md`, feature bazlı planlama için `.specs/` klasörüne bakın.
+Planned progress for the `web/` project. See `INSTALLATION.md` for setup details, `AGENTS.md` for rules, `docs/decisions.md` for decision rationales, and the `.specs/` folder for feature-based planning.
 
 ---
 
-## Faz 0 — Kurulum ✅ Tamamlandı
+## Phase 0 — Setup ✅ Completed
 
-Detaylar: `INSTALLATION.md`.
+Details: `INSTALLATION.md`.
 
 - [x] Vite + React + TypeScript
 - [x] Tailwind v4
@@ -16,88 +16,88 @@ Detaylar: `INSTALLATION.md`.
 - [x] TanStack Query
 - [x] `.env.example` + `VITE_API_URL`
 - [x] Axios
-- [x] shadcn sidebar bloğu
+- [x] shadcn sidebar block
 - [x] TanStack Table
-- [x] `route-pending`, `route-error-fallback`, `route-not-found` → router varsayılanları
-- [x] Component dosya adları kebab-case'e çevrildi
+- [x] `route-pending`, `route-error-fallback`, `route-not-found` → router defaults
+- [x] Component file names converted to kebab-case
 
-## Faz 1 — Auth & HTTP katmanı 🔄 Devam ediyor
+## Phase 1 — Auth & HTTP layer 🔄 In progress
 
-**HTTP altyapısı**
+**HTTP infrastructure**
 
-- [x] `src/api/axios-client.ts` — tek Axios instance (`baseURL: VITE_API_URL`), değer yoksa açıkça hata fırlat.
-- [x] `src/api/errors.ts` — `ApiError` (`message`, `status`). Hata gövdesi `error.response.data` üzerinden **string** olarak alınır; ağ hatasında `status: 0`.
-- [x] `src/api/interceptors.ts` — request: Bearer header; response: `ApiError` normalizasyonu + single-flight refresh.
-- [x] Refresh çağrısı için interceptor'sız ayrı Axios instance.
+- [x] `src/api/axios-client.ts` — single Axios instance (`baseURL: VITE_API_URL`), explicitly throw error if value is missing.
+- [x] `src/api/errors.ts` — `ApiError` (`message`, `status`). Error body is obtained as a **string** from `error.response.data`; network error has `status: 0`.
+- [x] `src/api/interceptors.ts` — request: Bearer header; response: `ApiError` normalization + single-flight refresh.
+- [x] Separate Axios instance without interceptor for refresh calls.
 
-**Oturum**
+**Session**
 
-- [x] `lib/auth-storage` — token okuma/yazma/temizleme + `hasSession()`.
+- [x] `lib/auth-storage` — read/write/clear token + `hasSession()`.
 - [x] `src/api/services/auth.service.ts`
 - [x] `src/features/auth/hooks/use-auth.ts` — `meQuery()`, `useLogin()`, `useLogout()`
-- [x] `_authenticated.tsx` guard'ı + panel yerleşimi (sidebar + header + `Outlet`)
-- [x] Giriş ekranı (`POST /auth/login`)
-- [x] `useLogout()` sırasının doğrulanması: `POST /auth/logout` → `auth-storage` temizle → `queryClient.clear()` → `/login`. `clear()` atlanırsa `['me']` cache'de kalır ve guard bir sonraki girişte ağ isteği atmadan geçer.
-- [ ] `INSTALLATION.md` § 8 doğrulama listesinin elle çalıştırılması (özellikle single-flight refresh).
+- [x] `_authenticated.tsx` guard + panel layout (sidebar + header + `Outlet`)
+- [x] Login screen (`POST /auth/login`)
+- [x] Validation of `useLogout()` sequence: `POST /auth/logout` → clear `auth-storage` → `queryClient.clear()` → `/login`. If `clear()` is skipped, `['me']` remains in cache and guard passes next login without network request.
+- [ ] Manual execution of `INSTALLATION.md` § 8 authentication checklist (especially single-flight refresh).
 
-## Faz 2 — Ürün Kataloğu 🔄 Devam ediyor
+## Phase 2 — Product Catalog 🔄 In progress
 
-**Taşıma işleri** (detay rotası eklenmeden önce yapılmalı)
+**Migration tasks** (must be completed before adding the detail route)
 
-- [x] `productsQuery` fabrikası route dosyasından `src/features/products/hooks/use-products.ts`'e taşınır — detay rotası ve mutation'lar aynı fabrikayı kullanacak.
-- [x] `columns` tanımı `src/features/products/components/columns.tsx`'e taşınır.
-- [x] Tablo iskeleti `src/features/products/components/` altına taşınır; satır sayısı `pageSize` ile uyumlu olur.
-- [ ] Route dosyasındaki yerel `ErrorComponent` kaldırılır; router'ın `defaultErrorComponent`'i kullanılır. `index.tsx` ve `$id.tsx` hâlâ yerel `ErrorComponent`/`pendingComponent` tanımlıyor — AGENTS.md § Ortak route bileşenleri kuralına aykırı, henüz temizlenmedi.
-- [x] `_authenticated/products.tsx` → `_authenticated/products/index.tsx` + `$id.tsx`. Sonra taşımak `routeTree.gen.ts` ve link tiplerini yeniden üretmeyi gerektirir.
+- [x] Move `productsQuery` factory from route file to `src/features/products/hooks/use-products.ts` — detail route and mutations will use the same factory.
+- [x] Move `columns` definition to `src/features/products/components/columns.tsx`.
+- [x] Move table skeleton under `src/features/products/components/`; row count aligns with `pageSize`.
+- [ ] Remove local `ErrorComponent` from route files; use router's `defaultErrorComponent`. `index.tsx` and `$id.tsx` still define local `ErrorComponent`/`pendingComponent` — violates AGENTS.md § Shared route components rule, not cleaned up yet.
+- [x] `_authenticated/products.tsx` → `_authenticated/products/index.tsx` + `$id.tsx`. Moving later requires regenerating `routeTree.gen.ts` and link types.
 
-**Liste**
+**List**
 
-- [x] `validateSearch` şeması genişletilir: `q`, `categoryId`, `brandId`, `status`, `sort`, `dir`, `page`.
-- [x] Sayfalama bağlantıları `search={(prev) => ({ ...prev, page })}` biçimine çevrilir — nesne biçimi filtreleri siliyor.
-- [x] Arama kutusu (debounce) + kategori/marka filtreleri; filtre değişiminde `page` 1'e döner.
-- [x] Kolon başlıklarına sıralama (`name` | `price` | `stock` | `updatedAt`).
-- [x] Kolon genişlikleri gerektiğinde `meta.className` ile sabitlenir (tablo `table-fixed` değil — bkz. `AGENTS.md` § Tablolar).
-- [x] Üç durum: loading (`pendingComponent` iskeleti), error (varsayılan fallback), empty (filtreli/filtresiz ayrımı).
-- [x] Stok rozeti: `stock === 0` ve `stock <= minStock` ayrı gösterilir.
+- [x] Extend `validateSearch` schema: `q`, `categoryId`, `brandId`, `status`, `sort`, `dir`, `page`.
+- [x] Pagination links converted to `search={(prev) => ({ ...prev, page })}` format — object form clears filters.
+- [x] Search box (debounce) + category/brand filters; `page` resets to 1 on filter change.
+- [x] Sorting on column headers (`name` | `price` | `stock` | `updatedAt`).
+- [x] Column widths fixed with `meta.className` when needed (table is not `table-fixed` — see `AGENTS.md` § Tables).
+- [x] Three states: loading (skeleton `pendingComponent`), error (default fallback), empty (distinguishing filtered/unfiltered).
+- [x] Stock badge: `stock === 0` and `stock <= minStock` shown separately.
 
-**Detay ve güncelleme**
+**Details and updates**
 
-- [x] `productQuery(id)` + `useProduct(id)`; `$id.tsx` loader'ı aynı fabrikayı kullanır.
-- [x] Düzenleme formu (react-hook-form + zod); `PUT /products/{id}`'e `costPrice`, `supplierId`, `description` detaydan alınıp geri gönderilir.
-- [x] `useUpdateProduct()` — `onSuccess`'te `['products']` invalidate.
-- [ ] Stok güncelleme (`PATCH /products/{id}/stock`). Servis metodu (`products.service.ts`) yazıldı ama sarmalayan bir hook (`useUpdateProductStock()`) henüz yok.
+- [x] `productQuery(id)` + `useProduct(id)`; `$id.tsx` loader uses the same factory.
+- [x] Edit form (react-hook-form + zod); `costPrice`, `supplierId`, `description` taken from detail and sent back to `PUT /products/{id}`.
+- [x] `useUpdateProduct()` — `onSuccess` invalidates `['products']`.
+- [ ] Stock update (`PATCH /products/{id}/stock`). Service method (`products.service.ts`) written but wrapping hook (`useUpdateProductStock()`) not yet implemented.
 
-**Oluşturma ve silme** (`AGENTS.md`'de scope'a alındı, aşağıdaki "Kapsam dışı" notunun yerini aldı)
+**Creation and deletion** (`AGENTS.md` scoped, replaces the below "Out of scope" note)
 
-- [x] Ürün oluşturma ekranı (`product-create-form.tsx`, oluşturma/düzenleme arasında paylaşılan `product-form.tsx`).
-- [x] Onay dialoglu ürün silme (`delete-product-dialog.tsx`) — `useDeleteProduct()` sonrası `['products']` invalidate.
+- [x] Product creation screen (`product-create-form.tsx`, shared between creation/editing `product-form.tsx`).
+- [x] Product deletion with confirmation dialog (`delete-product-dialog.tsx`) — `useDeleteProduct()` invalidates `['products']` afterwards.
 
-## Faz 3 — Lookup verileri 🔄 Devam ediyor
+## Phase 3 — Lookup data 🔄 In progress
 
 - [x] `categories.service.ts`, `brands.service.ts`
-- [x] `categoriesQuery()`, `brandsQuery()` + `useCategories()`, `useBrands()` — filtre select'lerinde kullanım.
-- [ ] Sabit listeler olduğu için yüksek `staleTime`. Henüz hiçbir lookup hook'unda ayarlanmadı.
+- [x] `categoriesQuery()`, `brandsQuery()` + `useCategories()`, `useBrands()` — used in filter selects.
+- [ ] Because they are fixed lists, high `staleTime`. Not yet set in any lookup hook.
 
-Tedarikçi seçimi oluşturma/düzenleme formunda gösterildiği için `suppliers.service.ts` + `suppliersQuery()`/`useSuppliers()` yazıldı. Ayrı bir tedarikçi listeleme ekranı hâlâ yok — yalnızca form içindeki select için kullanılıyor.
+Supplier selection was implemented in create/edit form, so `suppliers.service.ts` + `suppliersQuery()`/`useSuppliers()` were written. Separate supplier listing screen still does not exist — only used for the select inside the form.
 
-## Faz 4 — İstatistikler ✅ Tamamlandı
+## Phase 4 — Statistics ✅ Completed
 
-- [x] `stats.service.ts` + `statsQuery()` + `useStats()` — `GET /products/stats` özeti (toplam, tükenen, azalan), ürün listesinin üstünde `StockSummaryCards` olarak.
+- [x] `stats.service.ts` + `statsQuery()` + `useStats()` — summary from `GET /products/stats` (total, out-of-stock, low stock), shown above product list as `StockSummaryCards`.
 
-## Faz 5 — Teslim
+## Phase 5 — Delivery
 
-- [ ] `docs/decisions.md` tamamlanır (Faz 0-4 kararları).
-- [ ] `README.md` — çalıştırma adımları, varsayımlar, kütüphane gerekçeleri, yetişmeyenler.
-- [x] Bonus senaryo uygulanır veya kapsam dışı olarak README'de belirtilir. — `productsQuery()` ve `statsQuery()`'de 60 sn `refetchInterval` (bkz. `docs/decisions.md`).
-- [ ] `.env.example` ve `.gitignore` kontrolü; repo temiz klonda çalışır durumda.
+- [ ] Complete `docs/decisions.md` (Phases 0-4 decisions).
+- [ ] `README.md` — run steps, assumptions, library rationales, unfinished items.
+- [x] Bonus scenario implemented or marked as out of scope in README — 60 sec `refetchInterval` in `productsQuery()` and `statsQuery()` (see `docs/decisions.md`).
+- [ ] Check `.env.example` and `.gitignore`; repo works cleanly on fresh clone.
 
 ---
 
-## Açık kararlar
+## Open decisions
 
-- Background-refetch ve stale-data durumlarının görsel karşılığı henüz tanımlı değil (`AGENTS.md` § Loading / Error / Empty yalnızca üç temel durumu kapsıyor). 60 sn'lik polling geldiği için bu artık listede de görünür bir boşluk: tazeleme sessizce oluyor.
+- Visual representation of background refetch and stale-data states is not defined yet (`AGENTS.md` § Loading / Error / Empty covers only three basic states). Because 60 sec polling is added, this is now a visible gap in the list as well: refresh happens silently.
 
-## Kapsam dışı (şimdilik)
+## Out of scope (for now)
 
-- SSR / SEO — proje tamamen istemci taraflı.
-- Ayrı bir tedarikçi listeleme ekranı — `GET /suppliers` yalnızca form içindeki `supplierId` select'i için kullanılıyor.
+- SSR / SEO — project is fully client-side.
+- Separate supplier listing screen — `GET /suppliers` is only used for the `supplierId` select inside the form.

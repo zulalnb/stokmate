@@ -6,9 +6,9 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before 
 
 ## API
 
-Backend `api/API.md` dosyasında dokümante edilmiştir. Backend davranışı bilinmiyorsa tahmin yürütme; `api/API.md`'yi oku.
+The backend is documented in the `api/API.md` file. If the backend behavior is unknown, do not make assumptions; read `api/API.md`.
 
-Kullanılacak uçlar:
+Endpoints to use:
 
 | Method | Path |
 | --- | --- |
@@ -24,4 +24,4 @@ Kullanılacak uçlar:
 | `GET` | `/brands` |
 | `GET` | `/suppliers` |
 
-`POST /products`, `PUT /products/{id}`, `DELETE /products/{id}` **kullanılmaz**.
+`POST /products`, `PUT /products/{id}`, `DELETE /products/{id}` **are not used**.

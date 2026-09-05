@@ -1,14 +1,14 @@
-# Web Projesi Kurulumu
+# Web Project Setup
 
-`web/` projesinin sıfırdan (boş klasörden) nasıl kurulduğu. Her bölümde kurulum komutları, oluşan/değişen dosyalar ve bu projede gerçekten karşılaşılmış bilinen tuzaklar var.
+How the `web/` project was set up from scratch (from an empty folder). Each section contains setup commands, created/changed files, and real pitfalls actually encountered in this project.
 
-Bu dosya **kurulum ve araç yapılandırmasını** anlatır. Mimari kurallar, katman sorumlulukları, query key konvansiyonları ve UI kuralları `AGENTS.md`'dedir ve burada tekrar edilmez.
+This file covers **setup and tool configuration**. Architectural rules, layer responsibilities, query key conventions, and UI rules are in `AGENTS.md` and are not repeated here.
 
 ---
 
 ## 1. Vite + React + TypeScript
 
-**Kurulum:**
+**Setup:**
 
 ```bash
 pnpm create vite@latest web -- --template react-ts
@@ -16,12 +16,12 @@ cd web
 pnpm install
 ```
 
-**Oluşan dosyalar:** `vite.config.ts`, `tsconfig.json` (solution-style, `references` ile `tsconfig.app.json` + `tsconfig.node.json`'a işaret eder), `src/main.tsx`, `index.html`.
+**Created files:** `vite.config.ts`, `tsconfig.json` (solution-style, with `references` pointing to `tsconfig.app.json` + `tsconfig.node.json`), `src/main.tsx`, `index.html`.
 
-**Bilinen tuzak:** `tsconfig.json`'a eklenen `paths`/`baseUrl` proje referansları yüzünden gerçek derlemeye etki etmez — `src/`'i asıl type-check eden `tsconfig.app.json`'a **ayrıca** eklenmesi gerekir. Aksi halde `npx tsc -b` "Cannot find module '@/...'" hatası verir; ayrıca Vite/Rolldown'ın kendi `resolve.alias`'ı da `vite.config.ts`'te ayrı tanımlanmalıdır (biri diğerini kapsamaz).
+**Known pitfall:** Adding `paths`/`baseUrl` to `tsconfig.json` does not affect the actual build due to project references — it must be added to `tsconfig.app.json`, which actually type-checks `src/`. Otherwise, `npx tsc -b` gives a "Cannot find module '@/...'" error; also, Vite/Rollup's own `resolve.alias` must be separately defined in `vite.config.ts` (one does not cover the other).
 
 ```jsonc
-// tsconfig.app.json — compilerOptions içine
+// tsconfig.app.json — inside compilerOptions
 "paths": { "@/*": ["./src/*"] }
 ```
 
@@ -36,27 +36,27 @@ export default defineConfig({
 })
 ```
 
-**Doğrulama:** `npx tsc -b` hatasız çalışmalı. (`npx tsc --noEmit` **tek başına yeterli değildir** — kök `tsconfig.json` solution-style olduğu için 0 dosya kontrol eder ve sahte-yeşil sonuç verir.)
+**Verification:** `npx tsc -b` should run without errors. (`npx tsc --noEmit` is **not sufficient alone** — since the root `tsconfig.json` is solution-style, it checks 0 files and gives a false-green result.)
 
 ---
 
 ## 2. Tailwind v4
 
-**Kurulum:**
+**Setup:**
 
 ```bash
 pnpm add tailwindcss @tailwindcss/vite
 ```
 
-`vite.config.ts`'e plugin eklenir, `src/index.css`'e `@import "tailwindcss"` konur (shadcn init bu adımı otomatik de yapabilir, bkz. bölüm 4).
+Add the plugin to `vite.config.ts`, and put `@import "tailwindcss"` in `src/index.css` (shadcn init may do this step automatically, see section 4).
 
-**Doğrulama:** `pnpm run dev` başlatıp bir Tailwind class'ının (örn. `p-6`) gerçekten stil uyguladığı gözle kontrol edilir.
+**Verification:** Start `pnpm run dev` and visually check that a Tailwind class (e.g. `p-6`) actually applies its style.
 
 ---
 
 ## 3. Prettier
 
-**Kurulum:**
+**Setup:**
 
 ```bash
 pnpm add -D prettier prettier-plugin-tailwindcss
@@ -84,9 +84,9 @@ pnpm-lock.yaml
 src/routeTree.gen.ts
 ```
 
-`routeTree.gen.ts` otomatik üretildiği için hem burada hem `eslint.config.js`'in `globalIgnores`'ında hariç tutulur (bkz. bölüm 5).
+Since `routeTree.gen.ts` is auto-generated, it is excluded both here and in `eslint.config.js`'s `globalIgnores` (see section 5).
 
-**`package.json` script'leri:**
+**`package.json` scripts:**
 
 ```json
 {
@@ -95,21 +95,21 @@ src/routeTree.gen.ts
 }
 ```
 
-**Doğrulama:** `npx prettier --check .` çalıştırılır; yalnızca gerçekten formatlanmamış dosyalar listelenmeli, `routeTree.gen.ts` listede görünmemeli.
+**Verification:** Run `npx prettier --check .`; only truly unformatted files should be listed, and `routeTree.gen.ts` should not appear in the list.
 
 ---
 
 ## 4. shadcn/ui
 
-**Ön koşul:** Tailwind v4 kurulu olmalı (bkz. bölüm 2).
+**Prerequisite:** Tailwind v4 must be installed (see section 2).
 
-**Kurulum:**
+**Setup:**
 
 ```bash
 pnpm dlx shadcn@latest init
 ```
 
-Bu projede seçilen ayarlar (`components.json`):
+Settings chosen for this project (`components.json`):
 
 ```json
 {
@@ -126,21 +126,21 @@ Bu projede seçilen ayarlar (`components.json`):
 }
 ```
 
-**Component eklemek için:**
+**To add a component:**
 
 ```bash
 pnpm dlx shadcn@latest add <component-adı>
 ```
 
-**Bilinen tuzak:** shadcn CLI, `@/` alias'ını bulmak için kök `tsconfig.json`'daki `paths`'e bakar (proje referansları zincirindeki `tsconfig.app.json`'a değil). Kök `tsconfig.json`'da `paths` tanımlı değilse CLI alias'ı çözemez ve gerçek `src/components/ui/` yerine literal bir `./@/components/ui/...` klasörü oluşturur. Bu yüzden `@/*` path'i **hem** kök `tsconfig.json`'da **hem** `tsconfig.app.json`'da tanımlı tutulmalı (bkz. bölüm 1) — ikisinin farklı tüketicisi var: shadcn CLI ve gerçek derleme.
+**Known pitfall:** The shadcn CLI looks for the `@/` alias in the root `tsconfig.json`'s `paths` (not in the `tsconfig.app.json` in the project reference chain). If `paths` is not defined in the root `tsconfig.json`, the CLI cannot resolve the alias and creates a literal `./@/components/ui/...` folder instead of the actual `src/components/ui/`. Therefore, the `@/*` path must be defined in **both** the root `tsconfig.json` **and** `tsconfig.app.json` (see section 1) — they have different consumers: shadcn CLI and the actual build.
 
-**Doğrulama:** `pnpm dlx shadcn@latest add skeleton` ile bir component eklenip dosyanın gerçekten `src/components/ui/skeleton.tsx`'te oluştuğu kontrol edilir (kök dizinde `./@/` diye bir klasör oluşmamalı).
+**Verification:** Add a component with `pnpm dlx shadcn@latest add skeleton` and check that the file is actually created at `src/components/ui/skeleton.tsx` (there should not be a `./@/` folder in the root directory).
 
 ---
 
 ## 5. TanStack Router
 
-**Kurulum:**
+**Setup:**
 
 ```bash
 pnpm add @tanstack/react-router
@@ -157,21 +157,21 @@ export default defineConfig({
 })
 ```
 
-**Bilinen tuzak (kritik sıralama):** `tanstackRouter(...)` plugin listesinde **`react()`'ten önce** gelmelidir; aksi halde `autoCodeSplitting` hata verir.
+**Known pitfall (critical order):** `tanstackRouter(...)` must come **before** `react()` in the plugins list; otherwise, `autoCodeSplitting` will error.
 
-**Dosya yapısı:**
+**File structure:**
 
 ```
 src/routes/
 ├── __root.tsx              createRootRouteWithContext
-├── login.tsx               korumasız
-├── _authenticated.tsx      pathless layout route — guard + panel yerleşimi
+├── login.tsx               unprotected
+├── _authenticated.tsx      pathless layout route — guard + panel layout
 └── _authenticated/
     ├── index.tsx
     └── products/
 ```
 
-Router varsayılanları `src/router.ts`'te bir kez bağlanır:
+Router defaults are set once in `src/router.ts`:
 
 ```ts
 createRouter({
@@ -185,49 +185,49 @@ createRouter({
 })
 ```
 
-Bu üç bileşen `src/components/` altındadır (`route-pending.tsx`, `route-error-fallback.tsx`, `route-not-found.tsx`). Route dosyalarında tekrar tanımlanmaz — istisna: ekrana özel iskelet gerektiren `pendingComponent` (bkz. AGENTS.md § Ortak route bileşenleri).
+These three components are under `src/components/` (`route-pending.tsx`, `route-error-fallback.tsx`, `route-not-found.tsx`). They are not redefined in route files — exception: a screen-specific skeleton requiring a `pendingComponent` (see AGENTS.md § Common route components).
 
-- `_` önekli dosya **pathless layout route** üretir: URL'de `/products` olarak görünür, `/_authenticated/products` olarak değil. Guard'ın tek bir yerde durmasını sağlayan yapı budur.
-- `src/routeTree.gen.ts` — plugin tarafından her `dev`/`build`'de otomatik üretilir. **Elle düzenlenmez, `.gitignore`'a eklenmez, commit edilir** (tipler buna dayanıyor).
-- `src/router.ts` — `createRouter({ routeTree, defaultPreload: 'intent', ... })` instance'ı; `Register` modül augmentation'ı burada yapılır.
+- Files prefixed with `_` create a **pathless layout route**: It appears as `/products` in the URL, not as `/_authenticated/products`. This structure ensures the guard is in a single place.
+- `src/routeTree.gen.ts` — auto-generated by the plugin on every `dev`/`build`. **Do not edit by hand, do not add to `.gitignore`, do commit it** (types depend on it).
+- `src/router.ts` — the `createRouter({ routeTree, defaultPreload: 'intent', ... })` instance; `Register` module augmentation is done here.
 
-Guard'ın içeriği ve kuralları: `AGENTS.md` § Authentication.
+Guard contents and rules: `AGENTS.md` § Authentication.
 
-**Bilinen tuzak (eslint):** `eslint-plugin-react-refresh`'in `only-export-components` kuralı, her route dosyasının hem `Route` export'unu hem de local bir component'i (`component: RootLayout` gibi) barındırmasından rahatsız olur. Component'i export etmek kuralı susturur ama `autoCodeSplitting`'i kırar (component artık local olmadığı için ayrı chunk'a bölünmez). Doğru çözüm: `eslint.config.js`'te `src/routes/**/*.tsx` için bu kuralı kapatan ayrı bir override — component'i export etmek veya per-dosya `eslint-disable` yorumu **değil**.
+**Known pitfall (eslint):** The `only-export-components` rule of `eslint-plugin-react-refresh` complains that each route file contains both a `Route` export and a local component (like `component: RootLayout`). Exporting the component suppresses the rule but breaks `autoCodeSplitting` (since the component is no longer local, it won't be split into a separate chunk). The correct solution: in `eslint.config.js`, add a separate override for `src/routes/**/*.tsx` to disable this rule — **not** exporting the component or using a per-file `eslint-disable` comment.
 
-**Bilinen tuzak (guard + context):** `_authenticated.tsx` içindeki `beforeLoad`, `context.queryClient` üzerinden `ensureQueryData` çağırır. Bu yüzden `__root.tsx` mutlaka `createRootRouteWithContext<{ queryClient: QueryClient }>()` ile tanımlanmalı ve `createRouter`'a `context: { queryClient }` geçilmelidir (bkz. bölüm 6). Aksi halde `context.queryClient` tipte vardır ama çalışma anında `undefined` gelir.
+**Known pitfall (guard + context):** The `beforeLoad` in `_authenticated.tsx` calls `ensureQueryData` via `context.queryClient`. Therefore, `__root.tsx` must be defined with `createRootRouteWithContext<{ queryClient: QueryClient }>()` and `context: { queryClient }` must be passed to `createRouter` (see section 6). Otherwise, `context.queryClient` exists in types but is `undefined` at runtime.
 
-**Bilinen tuzak (yönlendirme):** `beforeLoad` içinde `navigate()` çağrılmaz; yönlendirme `throw redirect({ to: '/login' })` ile yapılır. `redirect` çağrısının sonucu `return` edilirse route yüklenmeye devam eder — `throw` zorunludur.
+**Known pitfall (redirect):** Do not call `navigate()` inside `beforeLoad`; redirection is done with `throw redirect({ to: '/login' })`. If you `return` the result of `redirect`, the route will continue to load — `throw` is required.
 
-**Bilinen tuzak (bekleme ekranı):** Guard `await` içerdiği için korumalı ekranlar ilk açılışta `beforeLoad` çözülene kadar beklemede kalır. `createRouter`'a `defaultPendingComponent` verilmezse bu süre boyunca boş ekran görünür.
+**Known pitfall (pending screen):** Since the guard contains `await`, protected screens will stay pending on first load until `beforeLoad` resolves. If you do not provide a `defaultPendingComponent` to `createRouter`, a blank screen will be shown during this time.
 
-**Doğrulama:**
+**Verification:**
 
 ```bash
 npx tsc -b
 pnpm run build
 ```
 
-`pnpm run build` çıktısında `dist/assets/` altında route'a özel ayrı bir chunk (örn. `routes-*.js`) görülmeli — code splitting'in çalıştığının kanıtıdır.
+In the output of `pnpm run build`, there should be a separate chunk for each route under `dist/assets/` (e.g. `routes-*.js`) — proof that code splitting works.
 
-Ardından elle:
+Then manually:
 
-1. Oturum açıkken `/products` adresine gidilir — açılmalı.
-2. `lib/auth-storage` temizlenip sayfa yenilenir — `/login`'e düşmeli.
-3. URL'de `/_authenticated/products` denenir — 404 vermeli (pathless route URL'de görünmez).
+1. Go to `/products` while logged in — it should open.
+2. Clear `lib/auth-storage` and refresh the page — should redirect to `/login`.
+3. Try `/_authenticated/products` in the URL — should give 404 (pathless route does not appear in the URL).
 
 ---
 
 ## 6. TanStack Query
 
-**Kurulum:**
+**Setup:**
 
 ```bash
 pnpm add @tanstack/react-query
 pnpm add -D @tanstack/react-query-devtools
 ```
 
-**`src/query-client.ts`** — tek bir `QueryClient` instance'ı:
+**`src/query-client.ts`** — a single `QueryClient` instance:
 
 ```ts
 import { QueryClient } from '@tanstack/react-query'
@@ -241,7 +241,7 @@ export const queryClient = new QueryClient({
 })
 ```
 
-**`main.tsx`** — `QueryClientProvider` ile sarma:
+**`main.tsx`** — wrap with `QueryClientProvider`:
 
 ```tsx
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -252,55 +252,55 @@ import { queryClient } from '@/query-client'
 </QueryClientProvider>
 ```
 
-**Router entegrasyonu:** `router.ts`'teki `defaultPreloadStaleTime: 0` ayarı bu yüzden konuldu — router'ın kendi preload cache'i Query'nin cache'iyle çakışmasın diye. Router'a `context: { queryClient }` eklenir (`createRootRouteWithContext<{ queryClient: QueryClient }>()`), böylece hem loader'lar hem `_authenticated.tsx`'teki `beforeLoad` guard'ı `context.queryClient.ensureQueryData(...)` çağırabilir.
+**Router integration:** The `defaultPreloadStaleTime: 0` setting in `router.ts` was set for this reason — to prevent the router's own preload cache from clashing with Query's cache. Add `context: { queryClient }` to the router (`createRootRouteWithContext<{ queryClient: QueryClient }>()`), so both loaders and the `beforeLoad` guard in `_authenticated.tsx` can call `context.queryClient.ensureQueryData(...)`.
 
-**Bilinen tuzak (mimari):** `beforeLoad` ve `loader` React hook çağıramaz. Query key ve `queryFn` yalnızca hook'un içinde tanımlıysa route katmanında elle ikinci kez yazmak gerekir ve iki tanım zamanla ayrışır — aynı veri için çift istek oluşur. Bu yüzden query tanımı `queryOptions()` fabrikası olarak export edilir; hem route hem hook aynı fabrikayı kullanır. Kural ve örnek: `AGENTS.md` § Mimari.
+**Known pitfall (architecture):** `beforeLoad` and `loader` cannot call React hooks. If the query key and `queryFn` are only defined inside the hook, you have to manually duplicate them in the route layer, and the two definitions will diverge over time — resulting in double requests for the same data. Therefore, export the query definition as a `queryOptions()` factory; both the route and the hook use the same factory. Rule and example: `AGENTS.md` § Architecture.
 
-**Doğrulama:**
+**Verification:**
 
 ```bash
 npx tsc -b
 pnpm run build
 ```
 
-Devtools'un yalnızca dev modda göründüğü, production build'e dahil olmadığı kontrol edilir.
+Check that devtools only appear in dev mode and are not included in the production build.
 
 ---
 
-## 7. Ortam değişkenleri
+## 7. Environment variables
 
-**`.env.example`** (repoya commit edilir):
+**`.env.example`** (committed to the repo):
 
 ```
 VITE_API_URL=http://localhost:5080
 ```
 
-**`.env`** (`.gitignore`'da) geliştirici tarafından kopyalanarak oluşturulur:
+**`.env`** (in `.gitignore`) is created by the developer by copying:
 
 ```bash
 cp .env.example .env
 ```
 
-**Bilinen tuzak:** `.env` yoksa `import.meta.env.VITE_API_URL` sessizce `undefined` olur ve Axios istekleri sayfanın kendi origin'ine gider — 404 alırsın ama hata mesajı sebebi göstermez. `axios-client.ts` içinde değer yoksa açıkça hata fırlat.
+**Known pitfall:** If `.env` does not exist, `import.meta.env.VITE_API_URL` silently becomes `undefined` and Axios requests go to the page's own origin — you get a 404 but the error message does not indicate the cause. Explicitly throw an error in `axios-client.ts` if the value is missing.
 
 ---
 
 ## 8. Axios
 
-**Kurulum:**
+**Setup:**
 
 ```bash
 pnpm add axios
 ```
 
-**Dosya yapısı:**
+**File structure:**
 
 ```
 src/api/
-├── axios-client.ts     tek Axios instance
-├── interceptors.ts     request/response interceptor'ları
-├── errors.ts           ApiError modeli
-└── services/           endpoint çağrıları (bkz. AGENTS.md § API Katmanı)
+├── axios-client.ts     single Axios instance
+├── interceptors.ts     request/response interceptors
+├── errors.ts           ApiError model
+└── services/           endpoint calls (see AGENTS.md § API Layer)
 ```
 
 `src/api/axios-client.ts`:
@@ -309,69 +309,69 @@ src/api/
 axios.create({ baseURL: import.meta.env.VITE_API_URL })
 ```
 
-**Bilinen tuzak (kritik):** `/auth/refresh` çağrısı, interceptor'ın takılı olduğu instance ile yapılamaz. Refresh isteğinin kendisi 401 dönerse response interceptor tekrar devreye girer ve yenileme sonsuz döngüye girer. Yenileme için `axios.create()` ile interceptor'sız **ikinci bir instance** kullanılır. Bu, "tek instance" kuralının tek istisnasıdır.
+**Known pitfall (critical):** The `/auth/refresh` call cannot be made with the instance that has interceptors attached. If the refresh request itself returns 401, the response interceptor is triggered again and the refresh enters an infinite loop. Use a **second instance** created with `axios.create()` without interceptors for refresh. This is the only exception to the "single instance" rule.
 
-**Bilinen tuzak:** Axios'un varsayılan `transformResponse`'u gövdeyi önce `JSON.parse` etmeye çalışır, başarısız olursa ham string'i döner. API hata gövdeleri `text/plain` olduğu için `error.response.data` bir **string**'tir — `data.message` gibi bir alan **yoktur**.
+**Known pitfall:** Axios's default `transformResponse` first tries to `JSON.parse` the body, and if it fails, returns the raw string. Since API error bodies are `text/plain`, `error.response.data` is a **string** — there is **no** field like `data.message`.
 
-**Bilinen tuzak:** Retry edilmiş istek işaretlenmezse (`config._retry`), refresh sonrası tekrar 401 dönen bir istek döngüye girer. Her istek en fazla bir kez retry edilir.
+**Known pitfall:** If a retried request is not marked (`config._retry`), a request that returns 401 again after refresh will enter a loop. Each request is retried at most once.
 
-Katman sorumlulukları, single-flight refresh davranışı ve `ApiError` sözleşmesi: `AGENTS.md` § API Katmanı.
+Layer responsibilities, single-flight refresh behavior, and the `ApiError` contract: `AGENTS.md` § API Layer.
 
-**Doğrulama:**
+**Verification:**
 
 ```bash
 npx tsc -b
 pnpm run build
 ```
 
-Ardından elle:
+Then manually:
 
-1. Yanlış kimlik bilgileriyle giriş yapıldığında API'nin `text/plain` hata mesajının kullanıcıya olduğu gibi gösterildiği.
-2. HTTP hatalarında `status` bilgisinin `ApiError.status` üzerinden korunduğu.
-3. API kapalıyken (`dotnet run` durdurulmuş) ağ hatasının API hatasından ayırt edildiği (`status: 0` ve fallback mesajı).
-4. Access token süresi dolduğunda (15 dk bekleyerek veya `lib/auth-storage`'daki access token'ı elle bozarak) refresh işleminin otomatik gerçekleştiği.
-5. **Single-flight:** access token elle bozulup aynı anda birden fazla query tetikleyen bir ekran (örn. liste + kategoriler + markalar) açılır. Network sekmesinde `/auth/refresh` isteğinin **tam olarak bir kez** göründüğü doğrulanır.
-6. Aynı senaryoda bekleyen isteklerin yalnızca birer kez retry edildiği (her endpoint Network'te en fazla iki kez: ilk 401 + bir retry).
-7. Refresh token da bozulduğunda session'ın temizlendiği ve giriş ekranına yönlendirildiği.
-8. Çıkış yapıldıktan sonra korumalı bir adrese gidildiğinde `/login`'e yönlendirildiği — `useLogout` içinde `queryClient.clear()` çağrılmazsa `['me']` cache'de kalır ve guard ağ isteği atmadan geçer.
+1. When logging in with incorrect credentials, the API's `text/plain` error message is displayed to the user as is.
+2. On HTTP errors, the `status` information is preserved via `ApiError.status`.
+3. When the API is down (`dotnet run` stopped), network errors are distinguished from API errors (`status: 0` and fallback message).
+4. When the access token expires (by waiting 15 minutes or manually corrupting the access token in `lib/auth-storage`), refresh occurs automatically.
+5. **Single-flight:** After corrupting the access token, open a screen that triggers multiple queries at once (e.g. list + categories + brands). In the Network tab, verify that the `/auth/refresh` request appears **exactly once**.
+6. In the same scenario, pending requests are retried only once each (each endpoint in the Network tab appears at most twice: initial 401 + one retry).
+7. When the refresh token is also corrupted, the session is cleared and redirected to the login screen.
+8. After logging out, going to a protected address redirects to `/login` — if `queryClient.clear()` is not called in `useLogout`, the `['me']` cache remains and the guard passes without a network request.
 
 ---
 
-## 9. shadcn sidebar bloğu
+## 9. shadcn sidebar block
 
-**Kurulum:**
+**Setup:**
 
 ```bash
 pnpm dlx shadcn@latest add sidebar
 ```
 
-Üretilen bileşenler `src/components/` altına gelir: `app-sidebar.tsx`, `nav-main.tsx`, `nav-user.tsx`, `site-header.tsx`.
+The generated components go under `src/components/`: `app-sidebar.tsx`, `nav-main.tsx`, `nav-user.tsx`, `site-header.tsx`.
 
-Panel yerleşimi `_authenticated.tsx` içinde kurulur; `--sidebar-width` ve `--header-height` `SidebarProvider`'a inline style ile verilir.
+Panel layout is set up inside `_authenticated.tsx`; `--sidebar-width` and `--header-height` are passed as inline style to `SidebarProvider`.
 
-Navigasyon öğeleri `lib/constants.ts`'te tanımlanır ve `nav-main.tsx` tarafından okunur.
+Navigation items are defined in `lib/constants.ts` and read by `nav-main.tsx`.
 
-**Bilinen tuzak:** shadcn CLI kebab-case dosya adı üretir. Proje başlangıcında component dosyaları PascalCase idi; iki stilin karışmaması için tümü kebab-case'e çevrildi (`RouteErrorFallback.tsx` → `route-error-fallback.tsx`). Kural: AGENTS.md § Kod Kuralları.
+**Known pitfall:** The shadcn CLI generates kebab-case file names. At the start of the project, component files were PascalCase; to avoid mixing styles, all were converted to kebab-case (`RouteErrorFallback.tsx` → `route-error-fallback.tsx`). Rule: AGENTS.md § Code Rules.
 
-**Doğrulama:** `pnpm run dev` ile panel açılır; sidebar daraltılıp genişletildiğinde içerik alanı kaymamalı, `SiteHeader` sabit kalmalı.
+**Verification:** Open the panel with `pnpm run dev`; when the sidebar is collapsed and expanded, the content area should not shift, and `SiteHeader` should remain fixed.
 
 ---
 
 ## 10. TanStack Table
 
-**Kurulum:**
+**Setup:**
 
 ```bash
 pnpm add @tanstack/react-table
 pnpm dlx shadcn@latest add table
 ```
 
-**Bilinen tuzak (API sürümü — kritik):** Projede kütüphanenin yeni API'si kullanılıyor: `tableFeatures({})` ile feature seti oluşturulur, `createColumnHelper<typeof features, T>()` ile kolonlar tanımlanır, `useTable` ve `<FlexRender />` ile render edilir.
+**Known pitfall (API version — critical):** The new API of the library is used in the project: feature set is created with `tableFeatures({})`, columns are defined with `createColumnHelper<typeof features, T>()`, and rendered with `useTable` and `<FlexRender />`.
 
-İnternetteki örneklerin ve shadcn data-table dokümanının büyük çoğunluğu eski API'yi (`useReactTable`, `flexRender`, `getCoreRowModel`) gösterir. İkisi karıştırılırsa tip hataları anlaşılmaz hale gelir. Emin olunmadığında `node_modules/@tanstack/react-table` içindeki tipler okunur.
+Most examples on the internet and the shadcn data-table docs show the old API (`useReactTable`, `flexRender`, `getCoreRowModel`). Mixing the two leads to confusing type errors. If unsure, check the types in `node_modules/@tanstack/react-table`.
 
-**Bilinen tuzak (sunucu taraflı sayfalama):** shadcn'in data-table dokümanı client-side sayfalama varsayar. Bu projede sayfalama ve sıralama API tarafında; `getPaginationRowModel()` ve `getSortedRowModel()` **eklenmez**, `pageCount` `total`'dan hesaplanır (bkz. AGENTS.md § Tablolar).
+**Known pitfall (server-side pagination):** The shadcn data-table docs assume client-side pagination. In this project, pagination and sorting are on the API side; do **not** add `getPaginationRowModel()` and `getSortedRowModel()`, and `pageCount` is calculated from `total` (see AGENTS.md § Tables).
 
-**Bilinen tuzak (kolon genişliği):** Varsayılan `table-auto` yerleşiminde kolon genişlikleri içeriğe göre ölçülür; sayfa değiştikçe uzun ürün adları tüm kolonları kaydırır. Tablo `table-fixed` ile kurulur, genişlikler kolon tanımındaki `meta.className` üzerinden `<th>`'lere uygulanır (`table-fixed`'de genişlik yalnızca ilk satırdan okunur).
+**Known pitfall (column width):** With the default `table-auto` layout, column widths are measured by content; as you switch pages, long product names shift all columns. The table is set up with `table-fixed`, and widths are applied to `<th>` from the column definition's `meta.className` (`table-fixed` reads widths only from the first row).
 
-**Doğrulama:** İki farklı sayfa arasında gidilip gelinir; kolon genişlikleri sabit kalmalı. Network sekmesinde sayfa değişimi başına tek `GET /products` isteği görülmeli.
+**Verification:** Switch between two different pages; column widths should remain fixed. In the Network tab, there should be only one `GET /products` request per page change.

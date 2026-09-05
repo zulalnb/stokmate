@@ -1,175 +1,174 @@
-# Kararlar
+# Decisions
 
-Bu dosya, projede verilen mimari ve kütüphane kararlarının gerekçelerini tutar.
-Her karar: **seçilen**, **elenen alternatif**, **gerekçe**, **bedel**.
+This file records the rationale behind architectural and library decisions made in the project.
+Each decision: **selected**, **rejected alternative**, **rationale**, **cost**.
 
-Yeni bir karar verildiğinde buraya bir başlık eklenir. README'nin "hangi kütüphaneleri neden tercih ettiniz" bölümü bu dosyadan yazılır.
+When a new decision is made, a heading is added here. The "which libraries did you choose and why" section of the README is written from this file.
 
 ---
 
 ## Vite
 
-**Seçilen:** Vite + React + TypeScript
-**Elenen:** Next.js
+**Selected:** Vite + React + TypeScript
+**Rejected:** Next.js
 
-Panelin tamamı kimlik doğrulaması arkasında ve tümüyle client-side; SSR ve SEO gereksinimi yok. Next.js seçilseydi neredeyse her dosya `"use client"` ile başlayacak, token sunucu bileşenlerinden okunamadığı için cookie + middleware kurmak gerekecekti — API ise `Authorization` başlığı bekliyor ve refresh rotasyonu client'ta yönetiliyor.
+The entire panel is behind authentication and fully client-side; there is no need for SSR or SEO. If Next.js were chosen, almost every file would start with `"use client"`, and since the token can't be read from server components, cookies + middleware would be required — whereas the API expects an `Authorization` header and refresh rotation is handled on the client.
 
-**Bedel:** Yok. İleride SSR gerekirse taşınması gerekir.
+**Cost:** None. If SSR is needed in the future, migration will be required.
 
 ---
 
 ## TanStack Router
 
-**Seçilen:** TanStack Router (file-based routing)
-**Elenen:** React Router
+**Selected:** TanStack Router (file-based routing)
+**Rejected:** React Router
 
-Liste filtreleri URL'de tutuluyor; `validateSearch` şeması bunları zod ile doğrulayıp tipliyor ve `Route.useSearch()` tipli obje döndürüyor. `beforeLoad` render'dan önce çalıştığı için korumalı ekran bir kare bile görünmüyor. Loader'lar `ensureQueryData` ile veriyi önden çekiyor.
+List filters are kept in the URL; the `validateSearch` schema validates and types them with zod, and `Route.useSearch()` returns a typed object. Since `beforeLoad` runs before render, protected screens never flash for a single frame. Loaders prefetch data with `ensureQueryData`.
 
-**Bedel:** `routeTree.gen.ts` üretimi ve commit edilmesi, plugin sırası kısıtı (`tanstackRouter()` `react()`'ten önce gelmeli), React Router'a göre daha uzun kurulum. Rota dosyalarını sonradan taşımak üretilmiş tipleri yeniden
-oluşturmayı gerektiriyor.
+**Cost:** Requires generating and committing `routeTree.gen.ts`, plugin ordering constraint (`tanstackRouter()` must come before `react()`), and a longer setup compared to React Router. Moving route files later requires regenerating the produced types.
 
 ---
 
 ## Axios
 
-**Seçilen:** Axios + interceptor'lar
-**Elenen:** Kendi `fetch` sarmalayıcım
+**Selected:** Axios + interceptors
+**Rejected:** Custom `fetch` wrapper
 
-Single-flight refresh ve `ApiError` dönüşümü response interceptor'ında tek yerde toplanıyor; çağrı yerleri `baseURL`, Bearer başlığı ve hata dönüşümünü hiç bilmiyor.
+Single-flight refresh and `ApiError` conversion are handled in one place in the response interceptor; call sites never need to know about `baseURL`, Bearer headers, or error conversion.
 
-**Bedel:** ~13 KB bundle. Mobil tarafta aynı bağımlılık tekrar eklenecek.
-`/auth/refresh` için interceptor'sız ikinci bir instance gerekiyor — aksi halde refresh'in kendi 401'i interceptor'ı yeniden tetikleyip sonsuz döngü yaratıyor.
-Ayrıca API hata gövdeleri `text/plain` olduğu için Axios'un `JSON.parse` denemesi başarısız oluyor ve `error.response.data` string olarak geliyor; bu davranış `errors.ts` içinde ayrıca ele alınıyor.
-
----
-
-## Auth durumu: abone olunabilir düz modül
-
-**Seçilen:** `lib/auth-storage` (React tanımayan modül) + `useSyncExternalStore`
-**Elenen:** React Context, Zustand
-
-Axios interceptor bir React modülü değil; token'ı senkron okumak ve yazmak zorunda, Context'ten okuyamaz. Zustand okuyabilirdi (`getState()`) ama o zaman kütüphane React dışından çağrılıyor — yani düz bir modül olarak kullanılıyor demek. O modül elle yazılınca bağımlılık sıfır kalıyor ve token'ın tek bir kaynağı oluyor.
-
-**Bedel:** `useSyncExternalStore` aboneliği elle kuruluyor (~30 satır).
-`persist` gibi hazır middleware yok.
+**Cost:** ~13 KB bundle. The same dependency will be added again on mobile.
+A second instance without interceptors is needed for `/auth/refresh` — otherwise, a 401 from the refresh itself would retrigger the interceptor and cause an infinite loop.
+Also, since API error bodies are `text/plain`, Axios's `JSON.parse` attempt fails and `error.response.data` comes as a string; this behavior is handled separately in `errors.ts`.
 
 ---
 
-## Oturum koruması: `_authenticated` pathless layout route
+## Auth state: subscribable plain module
 
-**Seçilen:** Tek `beforeLoad` guard'ı; korumalı ekranlar `_authenticated/` altında
-**Elenen:** `<ProtectedRoute>` sarmalayıcı bileşeni, ekran başına guard
+**Selected:** `lib/auth-storage` (React-agnostic module) + `useSyncExternalStore`
+**Rejected:** React Context, Zustand
 
-Guard tek dosyada duruyor; yeni korumalı ekran eklemek klasöre dosya koymaktan ibaret. Aynı dosya panel yerleşimini de (sidebar + header + `Outlet`) taşıdığı için layout ve koruma birlikte yaşıyor. Kontrol iki aşamalı: `hasSession()` senkron ve ağ isteği gerektirmiyor, token yoksa `/auth/me` boşuna çağrılmıyor; token varsa geçerliliği `meQuery()` ile doğrulanıyor, bayat token'da interceptor refresh deniyor.
+The Axios interceptor is not a React module; it needs to synchronously read and write the token, so it can't read from Context. Zustand could be used (`getState()`), but then the library would be called from outside React — meaning it would be used as a plain module. When that module is handwritten, there are zero dependencies and a single source of truth for the token.
 
-URL'de `_authenticated` görünmüyor, bu yüzden `/dashboard/products` gibi bir önek de kullanılmadı — panelin tamamı zaten kimlik doğrulaması arkasında, prefix bilgi taşımıyor.
-
-**Bedel:** Guard `await` içerdiği için `defaultPendingComponent` gerekiyor. `useLogout` içinde `queryClient.clear()` atlanırsa `['me']` cache'de kalıyor ve guard bir sonraki girişte ağ isteği atmadan geçiyor.
-
----
-
-## `queryOptions` fabrikası zorunluluğu
-
-**Seçilen:** Query tanımı fabrika olarak export edilir, hook onu sarar
-**Elenen:** Key ve `queryFn`'i doğrudan hook içinde tanımlamak
-
-`beforeLoad` ve `loader` React hook çağıramıyor. Tanım yalnızca hook içinde olsaydı route katmanında key'i elle ikinci kez yazmak gerekirdi; iki tanım zamanla ayrışır ve aynı veri için iki istek çıkardı.
-
-**Bedel:** Her query için bir satır fazladan boilerplate.
+**Cost:** `useSyncExternalStore` subscription is set up manually (~30 lines).
+No ready-made middleware like `persist`.
 
 ---
 
-## Login sonrası `/auth/me` çağrısının önlenmesi
+## Session protection: `_authenticated` pathless layout route
 
-**Seçilen:** `useLogin()` başarılı olduğunda `queryClient.setQueryData(meQuery().queryKey, data.user)` ile cache'i login cevabındaki `user` ile doldurmak
-**Elenen:** Hiçbir şey yapmadan `_authenticated` guard'ının `/auth/me`'yi tekrar çağırmasına izin vermek
+**Selected:** Single `beforeLoad` guard; protected screens under `_authenticated/`
+**Rejected:** `<ProtectedRoute>` wrapper component, per-screen guard
 
-Login cevabı zaten `user` içeriyor (`AuthTokens.user`). Guard `ensureQueryData(meQuery())` çağırdığında cache boşsa gereksiz bir round-trip oluşuyordu; `staleTime` (30 sn) içinde cache doldurulunca guard veriyi ağdan çekmeden kullanıyor.
+The guard lives in a single file; adding a new protected screen is just putting a file in the folder. The same file also contains the panel layout (sidebar + header + `Outlet`), so layout and protection live together. The check is two-stage: `hasSession()` is synchronous and doesn't require a network request, so `/auth/me` isn't called unnecessarily if there's no token; if there is a token, its validity is checked with `meQuery()`, and on a stale token the interceptor attempts refresh.
 
-**Bedel:** `useLogin()` artık `useQueryClient()`'a bağımlı (`useLogout()` zaten öyleydi). Cache'e yazılan veri `meQuery()`'nin `queryFn`'inin döneceğiyle birebir aynı şekilde tipli tutulmalı; `authService.me` ile login response'undaki `user` şekli ayrışırsa cache tutarsız veri taşır.
+`_authenticated` does not appear in the URL, so a prefix like `/dashboard/products` was not used — the entire panel is already behind authentication, so a prefix carries no information.
+
+**Cost:** Since the guard contains an `await`, a `defaultPendingComponent` is required. If `queryClient.clear()` is skipped in `useLogout`, `['me']` remains in cache and the guard passes on next login without a network request.
+
+---
+
+## `queryOptions` factory requirement
+
+**Selected:** Query definition is exported as a factory, hook wraps it
+**Rejected:** Defining key and `queryFn` directly inside the hook
+
+`beforeLoad` and `loader` cannot call React hooks. If the definition were only inside the hook, the key would have to be manually duplicated at the route layer; the two definitions would diverge over time and two requests would be made for the same data.
+
+**Cost:** One extra line of boilerplate per query.
+
+---
+
+## Preventing the `/auth/me` call after login
+
+**Selected:** When `useLogin()` succeeds, fill the cache with the login response's `user` using `queryClient.setQueryData(meQuery().queryKey, data.user)`
+**Rejected:** Do nothing and let the `_authenticated` guard call `/auth/me` again
+
+The login response already contains `user` (`AuthTokens.user`). When the guard calls `ensureQueryData(meQuery())`, if the cache is empty, this causes an unnecessary round-trip; if the cache is filled within `staleTime` (30s), the guard uses the data without fetching from the network.
+
+**Cost:** `useLogin()` now depends on `useQueryClient()` (`useLogout()` already did). The data written to the cache must be typed exactly the same as what `meQuery()`'s `queryFn` returns; if `authService.me` and the login response's `user` shape diverge, the cache will hold inconsistent data.
 
 ---
 
 ## TanStack Table
 
-**Seçilen:** shadcn `table` bileşenleri + `@tanstack/react-table`
-**Elenen:** Düz `<Table>` + elle yazılmış satır döngüsü ve sayfalama kontrolleri
+**Selected:** shadcn `table` components + `@tanstack/react-table`
+**Rejected:** Plain `<Table>` + manually written row loops and pagination controls
 
-Kolon tanımları tek dosyada toplanıyor, hücre render'ı tipli oluyor ve tablo yapısı ekran bileşeninden ayrılıyor. Daha önce çalıştığım bir desen olduğu için kurulum ve hata ayıklama süresi kısaydı. Tablo kodu sabit bir 4 dosyalık şablona oturuyor: `data-table-features.tsx` (tableFeatures config), `columns.tsx` (kolonlar), `sortable-header.tsx` (sıralanabilir başlık), `data-table.tsx` (`useTable()` + render) — yeni bir feature'da tablo gerektiğinde aynı yapı tekrarlanır.
+Column definitions are centralized in a single file, cell rendering is typed, and the table structure is separated from the screen component. This is a pattern I've used before, so setup and debugging time was short. The table code fits a fixed 4-file template: `data-table-features.tsx` (tableFeatures config), `columns.tsx` (columns), `sortable-header.tsx` (sortable header), `data-table.tsx` (`useTable()` + render) — for a new feature table, the same structure is repeated.
 
-**Bedel:** Sayfalama ve filtreleme API tarafında yapıldığı için kütüphanenin veri işleme katmanı kullanılmıyor (`getPaginationRowModel` / `getSortedRowModel`/`filteredRowModel` eklenmiyor). Sıralama için istisna: `rowSortingFeature` eklendi, ama yalnızca state ve column API'si (`column.getIsSorted()`, `column.getToggleSortingHandler()`) için — `sortedRowModel` hiç eklenmediğinden satırlar client'ta yeniden sıralanmıyor, sıralama hâlâ sunucu tarafında. Ayrıca projede kütüphanenin yeni API'si (`tableFeatures`, `useTable`) kullanılıyor; internetteki örneklerin çoğu eski API'yi gösterdiği için referans ararken dikkat gerekiyor.
-
----
-
-## shadcn/ui — `base-vega` stili
-
-**Seçilen:** shadcn/ui, `base-vega` stili (Base UI tabanlı)
-**Elenen:** Hazır UI kit (MUI, Ant Design, Mantine)
-
-Bileşenler repoya kopyalanıyor, kütüphane bağımlılığı ve tema geçersiz kılma savaşı olmuyor; Tailwind ile aynı zihinsel model kullanılıyor. Sidebar bloğu hazır geldiği için panel yerleşimi kısa sürdü.
-
-**Bedel:** Base UI, Radix tabanlı yaygın shadcn örneklerinden farklı bir API'ye sahip — `asChild` yerine `render` prop'u ve `nativeButton={false}` kullanılıyor. Örnek kod ararken bu fark gözetilmeli. `src/components/ui/` altındaki dosyalar CLI'ın ürettiği haliyle bırakılıyor.
+**Cost:** Since pagination and filtering are handled on the API side, the library's data processing layer is not used (`getPaginationRowModel` / `getSortedRowModel`/`filteredRowModel` are not added). Exception for sorting: `rowSortingFeature` is added, but only for state and column API (`column.getIsSorted()`, `column.getToggleSortingHandler()`); since `sortedRowModel` is never added, rows are not re-sorted client-side and sorting remains server-side. Also, the project uses the library's new API (`tableFeatures`, `useTable`); most online examples show the old API, so care is needed when looking for references.
 
 ---
 
-## Feature-based klasörleme
+## shadcn/ui — `base-vega` style
 
-**Seçilen:** `src/features/<feature>/{components,hooks}` + `src/api/services/`
-**Elenen:** Tip bazlı klasörleme (tüm hook'lar `src/hooks/`, tüm bileşenler `src/components/`)
+**Selected:** shadcn/ui, `base-vega` style (Base UI-based)
+**Rejected:** Prebuilt UI kit (MUI, Ant Design, Mantine)
 
-Bir feature'a dokunurken tek klasör açılıyor; server-state hook'ları kendi domain'iyle aynı yerde duruyor. `src/components/` yalnızca uygulama geneline ait bileşenlere (sidebar, header, route fallback'leri) ayrıldı, `src/hooks/` ise domain'siz reusable hook'lara.
+Components are copied into the repo, so there's no library dependency or theme override battle; it uses the same mental model as Tailwind. Since the sidebar block came ready-made, panel layout was quick.
 
-**Bedel:** Küçük projede klasör sayısı fazla görünüyor.
-
----
-
-## Dosya adlandırma: kebab-case
-
-**Seçilen:** Tüm dosyalar kebab-case (`route-pending.tsx`, `use-products.ts`)
-**Elenen:** Component dosyaları PascalCase
-
-shadcn CLI ürettiği dosyaları kebab-case adlandırıyor ve bu dosyalar elle düzenlenmiyor. Projede iki stil yan yana durmasın diye tümü kebab-case'e çevrildi. Export edilen component adı PascalCase kalıyor.
-
-**Bedel:** Başlangıçta PascalCase yazılan üç dosya yeniden adlandırıldı.
+**Cost:** Base UI has a different API from the more common Radix-based shadcn examples — it uses a `render` prop and `nativeButton={false}` instead of `asChild`. This difference should be considered when searching for example code. Files under `src/components/ui/` are left as generated by the CLI.
 
 ---
 
-## Ortak kodun web ve mobile'da kopyalanması
+## Feature-based folder structure
 
-**Seçilen:** `types.ts`, `money.ts`, `enums.ts` iki projede de ayrı kopya
-**Elenen:** pnpm workspace + `packages/shared`
+**Selected:** `src/features/<feature>/{components,hooks}` + `src/api/services/`
+**Rejected:** Type-based folder structure (all hooks in `src/hooks/`, all components in `src/components/`)
 
-React Native, Metro bundler yüzünden workspace hoisting'e karşı hassas;
-`watchFolders` ve `extraNodeModules` yapılandırması, TypeScript path'lerinin iki tarafta hizalanması ve EAS build'de lokalden farklı davranma riski var. Bu ölçekte kurulum maliyeti getirisinden fazla.
+When working on a feature, only one folder needs to be opened; server-state hooks live in the same domain. `src/components/` is reserved only for app-wide components (sidebar, header, route fallbacks), and `src/hooks/` is for domain-agnostic reusable hooks.
 
-**Bedel:** Ortak bir dosya değişirse diğer kopyanın elle güncellenmesi gerekiyor. Gerçek projede `packages/shared` doğru çözüm olurdu.
-
----
-
-## Dokümantasyon ayrımı
-
-**Seçilen:** `AGENTS.md` (sürekli geçerli kurallar), `INSTALLATION.md` (kurulum ve tuzaklar), `docs/decisions.md` (gerekçeler), `.specs/` (feature planları)
-**Elenen:** Tek bir büyük doküman veya ayrı bir `ARCHITECTURE.md`
-
-Ayrımın ölçüsü zaman: kural her görevde geçerli, kurulum bir kez yapıldı, karar geçmişte verildi, spec o anki iş için. `AGENTS.md` her turda okunduğu için kurulum detayı konursa sinyal düşüyor. Mimari kurallar ayrı bir dosyaya çıkarılmadı; ayrı dosya her turda fazladan bir yönlendirme adımı ekliyor ve `AGENTS.md` bu boyutta bölünmeyi gerektirmiyor.
-
-**Bedel:** Bir bilginin hangi dosyaya ait olduğuna her seferinde karar vermek gerekiyor; sınır bulanıklaşırsa iki dosya ayrışabilir.
+**Cost:** In a small project, the number of folders may seem excessive.
 
 ---
 
-## Başka istemciden gelen güncellemenin listede görünmesi
+## File naming: kebab-case
 
-**Seçilen:** 60 saniyelik `refetchInterval` — `productsQuery()` ve `statsQuery()` fabrikalarında
-**Elenen:** Yalnızca `refetchOnWindowFocus`; .NET tarafına SSE ucu
+**Selected:** All files in kebab-case (`route-pending.tsx`, `use-products.ts`)
+**Rejected:** Component files in PascalCase
 
-Senaryo, listenin açık ve sekmenin odakta olduğu durum. `refetchOnWindowFocus` zaten React Query varsayılanı olarak açık, ama yalnızca sekmeye geri dönüldüğünde çalışıyor; sürekli açık duran bir listeyi hiç tazelemiyor — yani tek başına bu senaryoyu karşılamıyor. SSE gerçek zamanlı ve en temiz sonucu verirdi, fakat backend'e yeni bir uç yazılmasını gerektiriyor; bu iş şu an kapsam dışı.
+The shadcn CLI generates files in kebab-case, and these files are not manually edited. To avoid having two styles side by side in the project, everything was converted to kebab-case. The exported component name remains PascalCase.
 
-Polling ayarı, § `queryOptions` fabrikası zorunluluğu gereği fabrikanın içinde duruyor; rotada veya component'te tekrarlanmıyor. Aralık iki fabrikada da `lib/constants.ts`'teki `PRODUCTS_REFETCH_INTERVAL_MS` üzerinden okunuyor, böylece tablo ile üstündeki özet kartları aynı ritimde tazeleniyor. `refetchIntervalInBackground` varsayılanda (`false`) bırakıldı: sekme arka plandayken sayaç duruyor, geri dönüldüğünde `refetchOnWindowFocus` devralıyor.
-
-**Bedel:** Odaktaki bir sekme her query için saatte ~60 istek atıyor. Güncelleme en geç 60 saniye gecikmeyle görünüyor. Arka plandaki tazelemenin görsel karşılığı yok — tablo sessizce değişiyor (bkz. `ROADMAP.md` § Açık kararlar).
+**Cost:** Three files originally written in PascalCase were renamed.
 
 ---
 
-## Açık — karar verilmedi
+## Copying shared code between web and mobile
 
-**Satır tıklaması:** Ürün satırının tamamı detaya mı gidecek, yoksa ayrı bir işlem sütunu mu olacak? Detay rotasına başlamadan önce kararlaştırılmalı.
+**Selected:** `types.ts`, `money.ts`, `enums.ts` as separate copies in both projects
+**Rejected:** pnpm workspace + `packages/shared`
+
+React Native is sensitive to workspace hoisting due to Metro bundler;
+configuring `watchFolders` and `extraNodeModules`, aligning TypeScript paths on both sides, and the risk of different behavior in EAS build vs. local. At this scale, setup cost outweighs the benefit.
+
+**Cost:** If a shared file changes, the other copy must be updated manually. In a real project, `packages/shared` would be the right solution.
+
+---
+
+## Documentation separation
+
+**Selected:** `AGENTS.md` (always-valid rules), `INSTALLATION.md` (setup and pitfalls), `docs/decisions.md` (rationales), `.specs/` (feature plans)
+**Rejected:** A single large document or a separate `ARCHITECTURE.md`
+
+The separation is based on time: rules are valid for every task, installation is done once, decisions were made in the past, specs are for the current work. `AGENTS.md` is read every round, so including setup details would reduce its signal. Architectural rules were not moved to a separate file; a separate file would add an extra navigation step each round and the current size of `AGENTS.md` doesn't warrant splitting.
+
+**Cost:** Each time, you must decide which file a piece of information belongs to; if the boundary becomes unclear, the two files may diverge.
+
+---
+
+## Seeing updates from another client in the list
+
+**Selected:** 60-second `refetchInterval` — in `productsQuery()` and `statsQuery()` factories
+**Rejected:** Only `refetchOnWindowFocus`; SSE endpoint on .NET side
+
+Scenario: the list is open and the tab is in focus. `refetchOnWindowFocus` is already enabled by default in React Query, but it only works when returning to the tab; it never refreshes a list that's always open — so by itself, it doesn't meet this scenario. SSE would give real-time and the cleanest result, but requires writing a new endpoint on the backend; that's currently out of scope.
+
+The polling setting, due to the § `queryOptions` factory requirement, lives inside the factory; it's not repeated in the route or component. In both factories, the interval is read from `PRODUCTS_REFETCH_INTERVAL_MS` in `lib/constants.ts`, so the table and the summary cards above it refresh in sync. `refetchIntervalInBackground` is left at the default (`false`): when the tab is in the background, the timer stops, and when returning, `refetchOnWindowFocus` takes over.
+
+**Cost:** A focused tab makes ~60 requests per query per hour. An update is visible with up to 60 seconds delay. There's no visual indication for background refresh — the table changes silently (see `ROADMAP.md` § Open decisions).
+
+---
+
+## Open — not decided
+
+**Row click:** Should the entire product row go to details, or should there be a separate action column? This should be decided before starting the detail route.
