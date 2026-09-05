@@ -541,3 +541,18 @@ If the task affects only a specific file, do not make broad changes.
 - Decision rationales: `docs/DECISIONS.md`
 - Feature requirements: the relevant spec under `.specs/`
 - Architecture rules: this file (§ Architecture)
+
+## ROADMAP.md
+
+`ROADMAP.md` is the source of truth for the web project's implementation progress.
+
+Before starting any web task:
+
+1. Read `ROADMAP.md`.
+2. Check whether the requested task already exists.
+3. If it is already marked as completed, verify the implementation before making changes.
+4. If the task exists and is incomplete, implement it and mark it as completed after verification.
+5. If the task does not exist, add it to the appropriate section only if it is explicitly requested or required by the current specification.
+6. Never mark a task as completed based only on the user's request. Verify the actual implementation first.
+7. Do not add speculative or future work to the roadmap.
+8. Keep `ROADMAP.md` updated when completing requested work.

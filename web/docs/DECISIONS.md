@@ -42,15 +42,14 @@ Also, since API error bodies are `text/plain`, Axios's `JSON.parse` attempt fail
 
 ---
 
-## Auth state: subscribable plain module
+## Auth state: plain module with an in-memory cache
 
-**Selected:** `lib/auth-storage` (React-agnostic module) + `useSyncExternalStore`
+**Selected:** `lib/auth-storage` (React-agnostic module, in-memory cache synced to `localStorage`)
 **Rejected:** React Context, Zustand
 
-The Axios interceptor is not a React module; it needs to synchronously read and write the token, so it can't read from Context. Zustand could be used (`getState()`), but then the library would be called from outside React — meaning it would be used as a plain module. When that module is handwritten, there are zero dependencies and a single source of truth for the token.
+The Axios interceptor and the `_authenticated` guard are not React components; they need to read and write the token synchronously and imperatively (`getAccessToken()`, `hasSession()`), so they can't read from Context. No screen re-renders when the token changes — login and logout both navigate instead — so no subscription mechanism is needed either: not `useSyncExternalStore`, not Zustand's `useStore` hook. A plain module-level cache read directly by callers is sufficient and keeps a single source of truth for the token with zero dependencies.
 
-**Cost:** `useSyncExternalStore` subscription is set up manually (~30 lines).
-No ready-made middleware like `persist`.
+**Cost:** No ready-made middleware like `persist`. If a future screen needs to reactively re-render on token change, a subscription layer would need to be added on top of this module.
 
 ---
 
