@@ -1,119 +1,119 @@
-## Proje
+## Project
 
-StokMate, küçük bir perakende zincirinin merkez ofis çalışanları için geliştirilmiş dahili stok yönetim panelidir.
+StokMate is an internal inventory management panel developed for the head office employees of a small retail chain.
 
-Uygulama:
+The application:
 
-- Vite + React + TypeScript kullanır.
-- Tamamen client-side çalışır; SSR ve SEO yoktur.
-- Kimlik doğrulamasının arkasında çalışır.
-- Server state TanStack Query tarafından yönetilir.
-- Routing TanStack Router ile yapılır.
-- HTTP istekleri Axios ile yapılır.
-- UI shadcn/ui (`base-vega` stili, Base UI tabanlı) + Tailwind ile oluşturulur.
-- Tablolar `@tanstack/react-table` ile kurulur.
+- Uses Vite + React + TypeScript.
+- Runs entirely client-side; there is no SSR or SEO requirement.
+- Runs behind authentication.
+- Server state is managed by TanStack Query.
+- Routing is handled by TanStack Router.
+- HTTP requests are made with Axios.
+- The UI is built with shadcn/ui (`base-vega` style, Base UI-based) + Tailwind.
+- Tables are built with `@tanstack/react-table`.
 
-Teknoloji yığını sabittir. Yeni dependency eklemeden önce kullanıcıdan onay al.
-
----
-
-## Çalışma Kuralları
-
-- Görev açıkça değiştirmiyorsa mevcut davranışı koru.
-- İstenen işin kapsamını genişletme.
-- Gelecekte gerekli olacağını düşündüğün kodu önceden yazma.
-- Kullanıcı tarafından istenmeyen route, component, hook, utility veya feature oluşturma.
-- Her seferinde yalnızca istenen dosya veya ekran üzerinde çalış.
-- İlgisiz dosyalara dokunma.
-- Bir parça tamamlandığında dur ve kullanıcıya kontrol etmesi için bırak.
-- Backend davranışı bilinmiyorsa tahmin yürütme; `api/API.md` dosyasını oku.
-- Domain terminolojisi belirsiz veya çelişkiliyse ürün kararı uydurma; kullanıcıdan netleştirme iste.
-- Güvenlik kurallarını client tarafında gevşetme.
+The technology stack is fixed. Get user approval before adding any new dependency.
 
 ---
 
-## Dokümantasyon Önceliği
+## Working Rules
 
-Kod yazmadan önce görevle ilgili dokümantasyonu incele. Öncelik sırası:
+- Preserve existing behavior unless the task explicitly changes it.
+- Do not expand the scope of the requested work.
+- Do not write code in advance for something you think will be needed in the future.
+- Do not create routes, components, hooks, utilities, or features that the user did not request.
+- Work only on the requested file or screen at a time.
+- Do not touch unrelated files.
+- Stop when a piece of work is complete and leave it for the user to review.
+- If backend behavior is unknown, do not make assumptions; read `api/API.md`.
+- If domain terminology is unclear or contradictory, do not invent a product decision; ask the user for clarification.
+- Do not weaken security rules on the client side.
+
+---
+
+## Documentation Priority
+
+Before writing code, review the documentation relevant to the task. Priority order:
 
 1. `.specs/README.md`
-2. İlgili `.specs/` dokümanı
+2. Relevant `.specs/` document
 3. `api/API.md`
-4. Bu dosyadaki kurallar
-5. `INSTALLATION.md` (yalnızca kurulum ve araç yapılandırması için)
+4. Rules in this file
+5. `INSTALLATION.md` (only for installation and tool configuration)
 
-Spec, koddan önce gelir. API davranışı hakkında varsayım yapma.
+The spec takes precedence over the code. Do not make assumptions about API behavior.
 
-Karar gerekçeleri `docs/decisions.md`'dedir. Yeni bir mimari veya kütüphane kararı verildiğinde oraya kısa bir başlık eklenir: seçilen yol, elenen alternatif, gerekçe, bedel.
+Decision rationales are documented in `docs/DECISIONS.md`. When making a new architectural or library decision, add a short heading there: selected approach, rejected alternative, rationale, and trade-off.
 
-Bu dosya ile diğer dokümanlar arasında çelişki varsa sessizce seçim yapma; çelişkiyi kullanıcıya bildir.
+If this file conflicts with another document, do not silently choose one; report the conflict to the user.
 
 ---
 
-## Mimari
+## Architecture
 
-```
+```text
 Component
   ↓
-Feature Hook  (queryOptions fabrikası + useQuery / useMutation)
+Feature Hook  (queryOptions factory + useQuery / useMutation)
   ↓
-API Service   (yalnızca HTTP çağrısı)
+API Service   (HTTP calls only)
   ↓
 Axios Client + Interceptors
   ↓
 API
 ```
 
-Import yönü tek yönlüdür. Bir component `products.service.ts` import ediyorsa mimari bozulmuştur; eksik olan hook veya `queryOptions` fabrikası ilgili feature'a eklenir.
+The import direction is strictly one-way. If a component imports `products.service.ts`, the architecture is broken; the missing hook or `queryOptions` factory must be added to the relevant feature.
 
 ### Component
 
-Component'ler:
+Components:
 
-- UI render eder ve kullanıcı etkileşimlerini yönetir.
-- Feature hook'larını kullanır.
-- API service'lerini doğrudan çağırmaz.
-- `useQuery` / `useMutation`'ı doğrudan kullanmaz; server-state işlemleri feature hook'ları üzerinden yapılır.
-- Axios veya HTTP detaylarını bilmez.
+- Render UI and handle user interactions.
+- Use feature hooks.
+- Do not call API services directly.
+- Do not call `useQuery` / `useMutation` directly; server-state operations are performed through feature hooks.
+- Do not know about Axios or HTTP details.
 
-Yanlış:
+Wrong:
 
 ```ts
 productsService.getProducts(filters)
 ```
 
-Doğru:
+Correct:
 
 ```ts
 useProducts(filters)
 ```
 
-### Klasör yapısı
+### Folder structure
 
-```
+```text
 src/
 ├── api/                    axios-client, interceptors, errors, services/
-├── components/             uygulama geneli — sidebar, header, route fallback'leri
-│   └── ui/                 shadcn bileşenleri (CLI üretir, elle düzenlenmez)
+├── components/             app-wide — sidebar, header, route fallbacks
+│   └── ui/                 shadcn components (generated by CLI, not manually edited)
 ├── features/
 │   ├── auth/
 │   │   ├── components/
 │   │   └── hooks/use-auth.ts
 │   └── products/
-│       ├── components/     columns.tsx, tabloya özel parçalar
+│       ├── components/     columns.tsx, table-specific pieces
 │       └── hooks/use-products.ts
-├── hooks/                  feature bağımsız reusable hook'lar
+├── hooks/                  feature-independent reusable hooks
 ├── lib/                    auth-storage, constants, enums, money, types, utils
 └── routes/
 ```
 
-Bir feature'a ait component `src/components/` altına konmaz; `src/components/` yalnızca birden fazla feature'ın kullandığı veya uygulama geneline ait bileşenler içindir.
+A component belonging to a feature must not be placed under `src/components/`; `src/components/` is only for components used by multiple features or belonging to the application as a whole.
 
-`src/hooks/` yalnızca domain'siz reusable hook'lar içindir (`use-debounce.ts`, `use-media-query.ts`). Server-state hook'ları buraya konmaz.
+`src/hooks/` is only for domain-independent reusable hooks (`use-debounce.ts`, `use-media-query.ts`). Server-state hooks do not belong here.
 
-### Query tanımları — `queryOptions` fabrikası zorunlu
+### Query definitions — `queryOptions` factory is mandatory
 
-Query key ve `queryFn` doğrudan hook'un veya route dosyasının içine yazılmaz. Fabrika ilgili feature'ın `hooks/` dosyasında tanımlanır ve dışa açılır; hook onu sarar:
+Query keys and `queryFn`s must not be written directly inside a hook or route file. The factory is defined and exported from the relevant feature's `hooks/` file; the hook wraps it:
 
 ```ts
 // src/features/products/hooks/use-products.ts
@@ -128,20 +128,20 @@ export function useProducts(filters: ProductFilters) {
 }
 ```
 
-Sebebi: route `beforeLoad` ve `loader` fonksiyonları React hook çağıramaz. Bunlar `ensureQueryData(...)` çağırırken aynı fabrikayı kullanır, böylece key ve ayarlar tek yerde kalır:
+Reason: route `beforeLoad` and `loader` functions cannot call React hooks. They use the same factory when calling `ensureQueryData(...)`, keeping the key and configuration in one place:
 
 ```ts
 loader: ({ context, deps }) => context.queryClient.ensureQueryData(productsQuery(deps)),
 ```
 
-Aynı query için key veya `queryFn` ikinci bir yerde tekrar yazılmaz; yazılırsa ayarlar zamanla ayrışır ve aynı veri için iki istek oluşur.
+The key or `queryFn` for the same query must never be written a second time elsewhere; otherwise the configurations can drift over time and produce duplicate requests for the same data.
 
-### Kapsam — mevcut hook ve fabrika listesi
+### Scope — current hook and factory list
 
-Web panelinin kapsamı listeleme, detay, oluşturma, güncelleme ve silmedir:
+The web panel covers listing, detail, creation, updating, and deletion:
 
-```
-meQuery()                 (fabrika — guard'da kullanılır)
+```text
+meQuery()                 (factory — used by guard)
 useLogin()
 useLogout()
 productsQuery(filters)    useProducts(filters)
@@ -155,17 +155,17 @@ brandsQuery()             useBrands()
 statsQuery()              useStats()
 ```
 
-Bu liste örnek değil, kapsamdır. Listede olmayan bir hook veya fabrika eklemeden önce kullanıcıya sor.
+This list is the scope, not an example. Ask the user before adding a hook or factory that is not on this list.
 
 ---
 
 ## TanStack Query
 
-Server state yalnızca TanStack Query'de tutulur. Redux, Zustand veya Context tabanlı server-state cache oluşturma.
+Server state is stored only in TanStack Query. Do not create a Redux, Zustand, or Context-based server-state cache.
 
-Query key'leri:
+Query keys:
 
-```
+```text
 ['me']
 ['products', filters]
 ['product', id]
@@ -174,29 +174,29 @@ Query key'leri:
 ['stats']
 ```
 
-Query key yapısını değiştirme.
+Do not change the query key structure.
 
-Liste filtreleri component state'inde tutulmaz. Şu filtreler URL search parametrelerinde tutulur ve ilgili query'nin key'ine dahil edilir:
+List filters are not stored in component state. The following filters are stored in URL search parameters and included in the relevant query key:
 
-```
+```text
 q  categoryId  brandId  status  page  sort  dir
 ```
 
-Mutation sonrasında ilgili cache invalidate edilir. Ürün mutation'larından sonra:
+Invalidate the relevant cache after mutations. After product mutations:
 
 ```ts
 queryClient.invalidateQueries({ queryKey: ['products'] })
 ```
 
-Invalidation ilgili hook'un `onSuccess`'inde tanımlanır, component içinde değil.
+Invalidation is defined in the relevant hook's `onSuccess`, not inside the component.
 
-Query veya mutation hata aldığında interceptor tarafından üretilen `ApiError` UI katmanına aktarılır. Mutation hatalarında bildirimi UI katmanı gösterir.
+When a query or mutation fails, the `ApiError` produced by the interceptor is passed to the UI layer. The UI layer displays notifications for mutation errors.
 
 ---
 
-## API Katmanı
+## API Layer
 
-```
+```text
 src/api/
 ├── axios-client.ts
 ├── interceptors.ts
@@ -211,28 +211,28 @@ src/api/
 
 ### Axios client
 
-`src/api/axios-client.ts` uygulamanın tek Axios instance'ını içerir.
+`src/api/axios-client.ts` contains the application's single Axios instance.
 
-**Tek istisna:** `/auth/refresh` çağrısı, interceptor'sız ayrı bir instance ile yapılır. Aksi halde refresh'in kendi 401'i response interceptor'ı yeniden tetikler ve sonsuz döngü oluşur. Bu istisna dışında yeni instance oluşturma.
+**Only exception:** the `/auth/refresh` request is made through a separate instance without interceptors. Otherwise, a 401 from the refresh request itself would trigger the response interceptor again and create an infinite loop. Do not create a new instance outside this exception.
 
 ### Interceptors
 
 `src/api/interceptors.ts`:
 
-- Request: `/auth/login` ve `/auth/refresh` dışındaki isteklere `Authorization: Bearer <accessToken>` ekler. Token `lib/auth-storage` üzerinden okunur.
-- Response: 401 durumunda single-flight refresh yönetir, HTTP hatalarını `ApiError` olarak normalize eder.
+- Request: adds `Authorization: Bearer <accessToken>` to requests other than `/auth/login` and `/auth/refresh`. The token is read through `lib/auth-storage`.
+- Response: manages single-flight refresh on 401 responses and normalizes HTTP errors into `ApiError`.
 
-401 davranışı:
+401 behavior:
 
-- Aynı anda birden fazla 401 alınırsa yalnızca **bir** `/auth/refresh` isteği gönderilir; diğer istekler aynı Promise'i bekler.
-- Refresh başarılı olursa bekleyen istekler **bir kez** retry edilir. Retry edilmiş istek işaretlenir (`_retry`) ve ikinci kez denenmez.
-- Refresh başarısız olursa session temizlenir ve istekler `ApiError` ile başarısız olur.
+- If multiple 401 responses occur at the same time, only **one** `/auth/refresh` request is sent; the other requests wait for the same Promise.
+- If refresh succeeds, waiting requests are retried **once**. The retried request is marked (`_retry`) and is never retried a second time.
+- If refresh fails, the session is cleared and the requests fail with `ApiError`.
 
-Token yenileme davranışını feature, component veya route içinde yeniden uygulama.
+Do not reimplement token refresh behavior in features, components, or routes.
 
 ### Errors
 
-`src/api/errors.ts` standart `ApiError` modelini içerir:
+`src/api/errors.ts` contains the standard `ApiError` model:
 
 ```ts
 export class ApiError extends Error {
@@ -246,38 +246,38 @@ export class ApiError extends Error {
 }
 ```
 
-API hata gövdeleri `text/plain` döner. Axios başarısız `JSON.parse` sonrası ham string'i bırakır — yani `error.response.data` bir **string**'tir, obje değil. `.message` gibi bir alan okumaya çalışma, tekrar `JSON.parse` etme.
+API error bodies are returned as `text/plain`. After Axios's failed `JSON.parse`, the raw string is preserved — meaning `error.response.data` is a **string**, not an object. Do not try to read a `.message` property or `JSON.parse` it again.
 
-API'nin döndürdüğü metin `ApiError.message` olarak korunur; kendi hata mesajını üretme.
+Preserve the text returned by the API as `ApiError.message`; do not generate your own error message.
 
-Ağ hatası ile HTTP hatası `error.response` alanının varlığına göre ayırt edilir; ağ hatasında `status: 0` kullanılır ve uygun bir fallback mesajı gösterilir.
+Distinguish network errors from HTTP errors based on the presence of `error.response`; network errors use `status: 0` and should display an appropriate fallback message.
 
-Uygulamanın geri kalanında `AxiosError`, `error.response`, `error.config` gibi Axios'a özgü detaylara bağımlı olma.
+Do not make the rest of the application depend on Axios-specific details such as `AxiosError`, `error.response`, or `error.config`.
 
 ### Services
 
-Service katmanı yalnızca API operasyonlarını tanımlar. Service'ler:
+The service layer only defines API operations. Services:
 
-- React bilmez, hook kullanmaz.
-- TanStack Query kullanmaz.
-- UI state tutmaz, toast göstermez.
-- `try/catch` yazmaz — hata dönüşümü interceptor'ın işidir.
-- Kuruş dönüşümü yapmaz; API ne veriyorsa onu geçirir.
+- Do not know about React or use hooks.
+- Do not use TanStack Query.
+- Do not hold UI state or display toasts.
+- Do not use `try/catch` — error transformation is handled by the interceptor.
+- Do not perform kuruş conversion; pass through whatever the API returns.
 
-Yeni bir endpoint kullanılacaksa sıra: önce service fonksiyonu, sonra `queryOptions` fabrikası + hook, en son component. Üç dosyayı aynı anda yazma; her adımda dur.
+When a new endpoint needs to be used, follow this order: service function first, then `queryOptions` factory + hook, and finally the component. Do not write all three files at once; stop at each step.
 
 ---
 
 ## Authentication
 
-- Access token 15 dakika geçerlidir.
-- Refresh token her yenilemede değişir; eski refresh token geçersiz hale gelir.
-- Token saklama, okuma ve temizleme işlemleri yalnızca `lib/auth-storage` üzerinden yapılır.
-- 401 refresh mantığı yalnızca response interceptor katmanındadır.
+- Access tokens are valid for 15 minutes.
+- The refresh token changes on every refresh; the previous refresh token becomes invalid.
+- Token storage, reading, and clearing are performed only through `lib/auth-storage`.
+- 401 refresh logic exists only in the response interceptor layer.
 
-### Oturum koruması — `_authenticated` pathless layout route
+### Session protection — `_authenticated` pathless layout route
 
-Korumalı ekranlar `src/routes/_authenticated/` altında toplanır. Guard tek yerdedir: `src/routes/_authenticated.tsx` içindeki `beforeLoad`.
+Protected screens are grouped under `src/routes/_authenticated/`. There is a single guard: `beforeLoad` in `src/routes/_authenticated.tsx`.
 
 ```ts
 beforeLoad: async ({ context }) => {
@@ -296,276 +296,269 @@ beforeLoad: async ({ context }) => {
 },
 ```
 
-İki aşamalı olmasının sebebi: `hasSession()` senkron ve ağ isteği gerektirmez, token hiç yoksa `/auth/me` çağrısı boşuna atılmaz. Token varsa geçerliliği `meQuery()` ile doğrulanır; token bayatsa interceptor refresh dener, o da başarısız olursa query reddedilir ve kullanıcı `/login`'e yönlendirilir.
+The two-stage check exists for a reason: `hasSession()` is synchronous and requires no network request, so `GET /auth/me` is not unnecessarily called when there is no token. When a token exists, its validity is verified with `meQuery()`; if the token is stale, the interceptor attempts a refresh. If that also fails, the query is rejected and the user is redirected to `/login`.
 
-Kurallar:
+Rules:
 
-- Yeni korumalı ekran `src/routes/_authenticated/` altına eklenir. Ek guard yazılmaz.
-- `ProtectedRoute` benzeri bir component oluşturma; koruma route katmanındadır.
-- Component içinde `if (!isAuthenticated) navigate('/login')` gibi yönlendirme yazma.
-- `/login` bu ağacın dışındadır (`src/routes/login.tsx`) ve korumalı değildir.
-- `meQuery()` yalnızca oturum doğrulama içindir; kullanıcı bilgisini ekranda göstermek gerekirse aynı fabrika `useQuery` ile kullanılır, ikinci bir query tanımlanmaz.
+- Add new protected screens under `src/routes/_authenticated/`. Do not add another guard.
+- Do not create a component such as `ProtectedRoute`; protection belongs to the route layer.
+- Do not write redirects such as `if (!isAuthenticated) navigate('/login')` inside components.
+- `/login` is outside this tree (`src/routes/login.tsx`) and is not protected.
+- `meQuery()` exists only for session validation; if user information needs to be displayed, use the same factory with `useQuery` rather than defining a second query.
 
-### Giriş
+### Login
 
-`useLogin()` başarılı olduğunda dönen `user` verisini `meQuery()`'nin cache'ine
-(`meQuery().queryKey` ile) yazar. Böylece login sonrası `/products`'a
-yönlendirmenin tetiklediği `_authenticated` guard'ı, `staleTime` süresi içinde
-cache'i taze bulur ve `GET /auth/me`'yi tekrar çağırmaz.
+When `useLogin()` succeeds, write the returned `user` data to the `meQuery()` cache using `meQuery().queryKey`. This allows the `_authenticated` guard triggered by the redirect to `/products` to find fresh data in the cache within the `staleTime` period and avoid another `GET /auth/me` request.
 
-Cache key'i elle (`['auth', 'me']`) tekrar yazılmaz; `meQuery().queryKey`
-kullanılır — key iki yerde tanımlanırsa zamanla ayrışma riski oluşur (bkz. §
-Query tanımları).
+Do not manually repeat the cache key (`['auth', 'me']`); use `meQuery().queryKey`. Defining the key in two places creates a risk of the definitions drifting over time (see § Query definitions).
 
-### Çıkış
+### Logout
 
 `useLogout()`:
 
-1. `POST /auth/logout` çağırır (hata alsa bile akış devam eder).
-2. `lib/auth-storage`'ı temizler.
-3. `queryClient.clear()` çağırır.
-4. `/login`'e yönlendirir.
+1. Calls `POST /auth/logout` (the flow continues even if the request fails).
+2. Clears `lib/auth-storage`.
+3. Calls `queryClient.clear()`.
+4. Redirects to `/login`.
 
-`queryClient.clear()` atlanamaz: `['me']` cache'de kalırsa `ensureQueryData(meQuery())` ağ isteği atmadan başarılı döner ve guard bir sonraki kullanıcıyı içeri alır.
+`queryClient.clear()` must not be skipped: if `['me']` remains in the cache, `ensureQueryData(meQuery())` may succeed without making a network request and allow the next user through the guard.
 
 ---
 
 ## Routing
 
-Route ağacı:
+Route tree:
 
-```
+```text
 src/routes/
 ├── __root.tsx              createRootRouteWithContext
-├── login.tsx               korumasız
-├── _authenticated.tsx      guard + panel yerleşimi
+├── login.tsx               unprotected
+├── _authenticated.tsx      guard + panel layout
 └── _authenticated/
-    ├── index.tsx           →  /products'a yönlendirir
+    ├── index.tsx           →  redirects to /products
     └── products/
         ├── index.tsx       →  /products
         ├── new.tsx         →  /products/new
         └── $id.tsx         →  /products/$id
 ```
 
-- Korumalı her ekran `_authenticated/` altına konur; başka yere korumalı ekran eklenmez.
-- URL'de `_authenticated` görünmez (pathless layout route). Ekran yolları `/products`, `/products/42` biçimindedir; `/dashboard` gibi bir önek kullanılmaz.
-- `src/routeTree.gen.ts` otomatik üretilir: elle değiştirme, `.gitignore`'a ekleme, commit edilmelidir.
-- Liste filtreleri route'un `validateSearch` şemasında tanımlanır.
-- `beforeLoad` ve `loader` fonksiyonları `queryOptions` fabrikalarını kullanır (bkz. § Mimari).
-- Yönlendirme `throw redirect({ ... })` ile yapılır; `beforeLoad` içinde `navigate` çağrılmaz.
+- Every protected screen belongs under `_authenticated/`; do not add protected screens elsewhere.
+- `_authenticated` does not appear in the URL (pathless layout route). Screen URLs are `/products`, `/products/42`, etc.; do not use a prefix such as `/dashboard`.
+- `src/routeTree.gen.ts` is generated automatically: do not edit it manually, do not add it to `.gitignore`, and it must be committed.
+- List filters are defined in the route's `validateSearch` schema.
+- `beforeLoad` and `loader` functions use `queryOptions` factories (see § Architecture).
+- Redirect using `throw redirect({ ... })`; do not call `navigate` inside `beforeLoad`.
 
 ### Layout
 
-`_authenticated.tsx` hem guard'ı hem panel yerleşimini barındırır: `SidebarProvider` + `AppSidebar` + `SiteHeader` + `Outlet`. Korumalı ekranlar kendi sidebar veya header'ını render etmez, doğrudan içerik döner.
+`_authenticated.tsx` contains both the guard and the panel layout: `SidebarProvider` + `AppSidebar` + `SiteHeader` + `Outlet`. Protected screens do not render their own sidebar or header; they render their content directly.
 
-Sidebar navigasyon öğeleri `lib/constants.ts` içinde tanımlanır; `nav-main.tsx` onları okur. Yeni menü öğesi eklemeden önce o ekranın kapsamda olduğunu doğrula.
+Sidebar navigation items are defined in `lib/constants.ts`; `nav-main.tsx` reads them. Before adding a new menu item, verify that the corresponding screen is within scope.
 
-### Ortak route bileşenleri
+### Shared route components
 
-`route-pending.tsx`, `route-error-fallback.tsx` ve `route-not-found.tsx` `router.ts`'te `defaultPendingComponent`, `defaultErrorComponent` ve `defaultNotFoundComponent` olarak bir kez bağlanır.
+`route-pending.tsx`, `route-error-fallback.tsx`, and `route-not-found.tsx` are connected once in `router.ts` as `defaultPendingComponent`, `defaultErrorComponent`, and `defaultNotFoundComponent`.
 
-- Route dosyalarında ayrıca `errorComponent` tanımlanmaz; varsayılan yeterlidir.
-- `pendingComponent` yalnızca o ekranın içerik şeklini taklit eden bir iskelet gerektiğinde tanımlanır (bkz. § Loading / Error / Empty). İskelet ilgili feature'ın `components/` klasöründe durur, route dosyasında değil.
+- Do not define `errorComponent` separately in route files; the default is sufficient.
+- Define `pendingComponent` only when a screen needs a skeleton that mirrors its specific content structure (see § Loading / Error / Empty). The skeleton belongs in the relevant feature's `components/` folder, not in the route file.
 
-### Search params ile gezinme
+### Navigation with search params
 
-Filtreler eklendikçe `search` nesnesi büyür. Sayfa değiştiren bağlantılar mevcut filtreleri korumak zorundadır:
+As filters are added, the `search` object grows. Links that change the page must preserve existing filters:
 
 ```tsx
 <Link to="." search={(prev) => ({ ...prev, page: prev.page + 1 })} />
 ```
 
-Nesne biçimi (`search={{ page: 2 }}`) diğer filtreleri siler; kullanma.
+Do not use the object form (`search={{ page: 2 }}`), as it removes the other filters.
 
 ---
 
-## Tablolar
+## Tables
 
-Bir feature'ın listesi tabloyla gösterilecekse, dosya yapısı sabit bir
-şablonu izler; ürün tablosu bu şablonun referans örneğidir
-(`src/features/products/components/`):
+When a feature's list is displayed as a table, it must follow a fixed file structure; the product table is the reference implementation (`src/features/products/components/`):
 
-```
-data-table-features.tsx   tableFeatures({...}) konfigürasyonu — columnMeta tipi ve rowSortingFeature; `features` ve `DataTableFeatures` tipini export eder
-columns.tsx                createColumnHelper<DataTableFeatures, T>() ile kurulan `columns` dizisi
-sortable-header.tsx        sıralanabilir kolon başlığı — column.getIsSorted() / column.getToggleSortingHandler()
-data-table.tsx             useTable() çağrısı + <Table> render ağacı; columns/data/sorting/onSortingChange prop olarak alınır
+```text
+data-table-features.tsx   tableFeatures({...}) configuration — columnMeta type and rowSortingFeature; exports `features` and `DataTableFeatures` types
+columns.tsx                `columns` array built with createColumnHelper<DataTableFeatures, T>()
+sortable-header.tsx        sortable column header — column.getIsSorted() / column.getToggleSortingHandler()
+data-table.tsx             useTable() call + <Table> render tree; receives columns/data/sorting/onSortingChange as props
 ```
 
-Filtre çubuğu ve sayfalama bu dördün dışında, aynı `components/` klasöründe ayrı dosyalarda durur (ürün için `product-filter-bar.tsx`, `table-pagination.tsx`). Route dosyası yalnızca URL/arama state'ini yönetir ve bu component'lere prop geçirir; `useTable()` çağrısı route dosyasında olmaz.
+The filter bar and pagination are separate files in the same `components/` folder, outside these four files (`product-filter-bar.tsx` and `table-pagination.tsx` for products). The route file only manages URL/search state and passes props to these components; it must not call `useTable()`.
 
-Projede kütüphanenin yeni API'si kullanılır: `tableFeatures`, `createColumnHelper`, `useTable`, `<FlexRender />`.
+The project uses the library's new API: `tableFeatures`, `createColumnHelper`, `useTable`, `<FlexRender />`.
 
-**İnternetteki örneklerin ve shadcn data-table dokümanının çoğu eski API'yi (`useReactTable`, `flexRender`, `getCoreRowModel`) gösterir; bu projede geçerli değildir.** Emin olmadığında `node_modules/@tanstack/react-table` içindeki tipleri oku, tahmin etme.
+**Most examples on the internet and the shadcn data-table documentation use the old API (`useReactTable`, `flexRender`, `getCoreRowModel`); those examples do not apply to this project.** When in doubt, read the types inside `node_modules/@tanstack/react-table` rather than making assumptions.
 
-Sayfalama, sıralama ve filtreleme **sunucu taraflıdır**:
+Pagination, sorting, and filtering are **server-side**:
 
-- `getPaginationRowModel()` / `getSortedRowModel()` eklenmez (yani `tableFeatures({...})`'a `paginatedRowModel` / `sortedRowModel` slotları geçirilmez); eklenirse API'nin döndürdüğü sayfa ikinci kez sayfalanır ve sıralama yalnızca o sayfa içinde çalışır.
-- `rowSortingFeature` yine de eklenir — ama yalnızca *state ve column API'si* için (`state.sorting`, `column.getIsSorted()`, `column.getToggleSortingHandler()`). `sortedRowModel` hiç eklenmediği için satırlar client'ta yeniden sıralanmaz; `useTable`'a geçirilen `state: { sorting }` ve `onSortingChange`, route'un URL güncelleyen handler'ına bağlanır.
-- `pageCount` `Math.ceil(total / pageSize)` ile hesaplanır; yanıtta `totalPages` yoktur.
-- Sayfa ve sıralama state'i component içinde tutulmaz; `validateSearch` şemasından okunur, `<Link search={...}>` / `navigate({ search: ... })` ile güncellenir. `useState` ile `pagination` veya `sorting` state'i tutma.
-- Sıralanabilir kolonlar API'nin kabul ettikleriyle sınırlıdır: `name` | `price` | `stock` | `updatedAt`; yalnızca bu kolonlarda `enableSorting: true` işaretlenir.
-- Kolon tanımları `columns.tsx` içinde durur, route dosyasında değil.
-- Hücrelerde ham değer gösterilmez: fiyat `formatKurus`, `unit` ve `status` `lib/enums.ts` map'lerinden geçer.
-- Kolon genişlikleri yalnızca gerektiğinde kolon tanımındaki `meta.className` üzerinden verilir (taşan bir kolonu `max-w-*` ile sınırlamak, dar bir sayı kolonunu `w-*` ile sabitlemek gibi). Tablo `table-fixed` **değildir**; `meta.className` her kolona değil, yalnızca ihtiyaç duyulana seçici olarak uygulanır. Sayı kolonlarında `tabular-nums` kullanılır.
+- Do not add `getPaginationRowModel()` / `getSortedRowModel()` (meaning do not pass `paginatedRowModel` / `sortedRowModel` slots to `tableFeatures({...})`); otherwise the API's returned page will be paginated a second time and sorting will work only within that page.
+- `rowSortingFeature` is still included — but only for *state and column API* (`state.sorting`, `column.getIsSorted()`, `column.getToggleSortingHandler()`). `sortedRowModel` is never included, so rows are not re-sorted on the client; the `state: { sorting }` and `onSortingChange` passed to `useTable` are connected to the route's URL-updating handler.
+- `pageCount` is calculated with `Math.ceil(total / pageSize)`; the response does not contain `totalPages`.
+- Page and sorting state is not stored inside the component; it is read from the `validateSearch` schema and updated with `<Link search={...}>` / `navigate({ search: ... })`. Do not use `useState` for pagination or sorting state.
+- Sortable columns are limited to those accepted by the API: `name` | `price` | `stock` | `updatedAt`; set `enableSorting: true` only on these columns.
+- Column definitions belong in `columns.tsx`, not the route file.
+- Cells must not display raw values: prices go through `formatKurus`, while `unit` and `status` go through the maps in `lib/enums.ts`.
+- Column widths should be specified through `meta.className` in the column definition only when necessary (for example, limiting an overflowing column with `max-w-*` or fixing a narrow numeric column with `w-*`). The table is **not** `table-fixed`; `meta.className` should be applied selectively rather than to every column. Numeric columns use `tabular-nums`.
 
 ---
 
 ## Money
 
-`price` ve `costPrice` integer kuruş değeridir: `3950` → `39,50 ₺`
+`price` and `costPrice` are integer kuruş values: `3950` → `39,50 ₺`
 
-Kod tabanının hiçbir yerinde `price / 100` veya `price * 100` yapma. Para dönüşümleri yalnızca `lib/money.ts` içindeki `formatKurus` ve `parseKurus` üzerinden yapılır.
+Do not use `price / 100` or `price * 100` anywhere in the codebase. Money conversions must only be performed through `formatKurus` and `parseKurus` in `lib/money.ts`.
 
 ---
 
 ## Product update
 
-`PUT /products/{id}` tüm kaydı yeniden yazar ve şu alanları zorunlu ister:
+`PUT /products/{id}` rewrites the entire record and requires the following fields:
 
-```
+```text
 costPrice  supplierId  description
 ```
 
-Edit formu bu değerleri detail endpoint'inden almalı ve kullanıcı değiştirmese bile update request'inde göndermelidir. Aksi halde kayıt sırasında sessizce silinirler.
+The edit form must obtain these values from the detail endpoint and include them in the update request even if the user does not change them. Otherwise, they will be silently cleared when the record is saved.
 
-Backend davranışını tahmin ederek request modeli değiştirme.
+Do not change the request model based on assumptions about backend behavior.
 
 ---
 
 ## Product image
 
-`imageUrl` **null olabilir** — her üründe görsel garanti değildir. `lib/types.ts`'te `imageUrl: string | null` olarak tiplenir.
+`imageUrl` **can be null** — an image is not guaranteed for every product. It is typed as `imageUrl: string | null` in `lib/types.ts`.
 
-`imageUrl`'i doğrudan bir `<img src>`'e geçirmeden önce null kontrolü yap; `null` durumunda placeholder göster (bkz. `routes/_authenticated/products/$id.tsx`). Boş string'e veya varsayılan bir görsel URL'sine düşme.
+Check for null before passing `imageUrl` directly to an `<img src>`. When it is `null`, show a placeholder (see `routes/_authenticated/products/$id.tsx`). Do not fall back to an empty string or a default image URL.
 
 ---
 
 ## Enums
 
-`unit` ve `status` API'den sayısal gelir. UI'da ham sayı gösterme; etiketleri `lib/enums.ts` içindeki `as const` map'lerinden al.
+`unit` and `status` are returned as numbers by the API. Do not display raw numbers in the UI; obtain their labels from the `as const` maps in `lib/enums.ts`.
 
-`lib/types.ts` içinde bu alanlar dar union olarak tiplenir (`status: 1 | 2 | 3`), böylece map erişiminde `as keyof typeof` gibi assertion gerekmez.
+These fields are typed as narrow unions in `lib/types.ts` (`status: 1 | 2 | 3`), so map access does not require assertions such as `as keyof typeof`.
 
 ---
 
 ## Pagination
 
-`GET /products` response'unda `totalPages` bulunmaz. Gerektiğinde `Math.ceil(total / pageSize)` ile hesapla. API'nin maksimum `pageSize` değeri `100`'dür.
+The `GET /products` response does not contain `totalPages`. Calculate it with `Math.ceil(total / pageSize)` when needed. The API's maximum `pageSize` is `100`.
 
 ---
 
 ## TypeScript
 
-- `any` ve `as any` kullanma.
-- Gereksiz type assertion kullanma. Assertion ihtiyacı doğuyorsa çoğunlukla `lib/types.ts`'teki tip fazla geniştir; tipi daralt.
-- Domain tipleri `lib/types.ts` içinde tutulur.
-- Aynı tip için ikinci bir paralel model oluşturma.
+- Do not use `any` or `as any`.
+- Avoid unnecessary type assertions. If an assertion seems necessary, the type in `lib/types.ts` is usually too broad; narrow the type instead.
+- Domain types belong in `lib/types.ts`.
+- Do not create a second parallel model for the same type.
 
 ---
 
 ## UI
 
-Kullanıcıya gösterilen tüm metinler **Türkçe**; kod, yorum ve commit mesajları **İngilizce** olmalıdır.
+All user-facing text must be **Turkish**; code, comments, and commit messages must be **English**.
 
-UI metinleri:
+UI text:
 
-- Cümle biçiminde olmalı, gereksiz dolgu içermemeli.
-- Butonlar yaptıkları işlemi açıkça adlandırmalı.
-- Hata mesajları sorunu ve kullanıcının sonraki adımını açıklamalı.
-- Özür dileyen ifadeler kullanılmamalı.
+- Must use sentence case and avoid unnecessary filler.
+- Buttons must clearly name the action they perform.
+- Error messages must explain the problem and the user's next step.
+- Do not use apologetic language.
 
-### shadcn `base-vega` stili
+### shadcn `base-vega` style
 
-Bu projedeki shadcn stili Base UI tabanlıdır. `Button` gibi bileşenler `render` prop'u ve `nativeButton={false}` ile başka bir element olarak render edilir:
+The shadcn style in this project is Base UI-based. Components such as `Button` use the `render` prop and `nativeButton={false}` when rendered as another element:
 
 ```tsx
 <Button nativeButton={false} render={<Link to="/products" />}>Ürünler</Button>
 ```
 
-`asChild` deseni kullanılmaz. `src/components/ui/` altındaki dosyalar CLI tarafından üretilir; elle düzenlenmez, gerekirse yeniden `add` edilir.
+Do not use the `asChild` pattern. Files under `src/components/ui/` are generated by the CLI; do not edit them manually. If necessary, regenerate them with `add`.
 
-### İkonlar
+### Icons
 
-Lucide kullanılır. İkon prop olarak geçirilirken tip `LucideIcon`, değer bileşenin kendisidir (`icon={CircleCheck}`, `icon={<CircleCheck />}` değil). Boyut için `size-4` gibi Tailwind sınıfları kullanılır.
+Lucide is used. When passing an icon as a prop, the type is `LucideIcon` and the value is the component itself (`icon={CircleCheck}`, not `icon={<CircleCheck />}`). Use Tailwind classes such as `size-4` for sizing.
 
 ---
 
 ## Loading / Error / Empty
 
-Her veri ekranı üç durumu ele almalıdır.
+Every data screen must handle three states.
 
-**Loading** — ortalanmış spinner kullanma; gerçek içeriğin yapısını taklit eden shadcn `Skeleton` kullan. Tablo iskeleti gerçek kolon sayısı ve satır yüksekliğiyle örtüşmeli; satır sayısı `pageSize` ile uyumlu olmalı, kolon sayısıyla değil.
+**Loading** — do not use a centered spinner; use the shadcn `Skeleton` to mirror the structure of the actual content. The table skeleton must match the real column count and row height; the number of rows must correspond to `pageSize`, not the number of columns.
 
-**Error** — `ApiError.message` göster, yeniden denemek için `router.invalidate()` çağıran bir "Tekrar dene" butonu koy. Loader'da patlayan query'ler için `useQueryErrorResetBoundary().reset()` de çağrılmalı; aksi halde buton hiçbir şey yapmıyormuş gibi görünür.
+**Error** — display `ApiError.message` and provide a "Tekrar dene" button that calls `router.invalidate()` to retry. For queries that fail in a loader, `useQueryErrorResetBoundary().reset()` must also be called; otherwise the button may appear to do nothing.
 
-**Empty** — filtre varsa sonuç bulunamadığını belirt ve filtreleri temizleme seçeneği sun; filtre yoksa henüz veri bulunmadığını belirt.
+**Empty** — if filters are active, indicate that no results were found and provide an option to clear the filters; if there are no filters, indicate that there is no data yet.
 
-`useSuspenseQuery` kullanılan ekranlarda `isPending` hiçbir zaman `true` olmaz; loading durumu route'un `pendingComponent`'i ile ele alınır. Aynı ekranda hem `useSuspenseQuery` hem `isPending` kontrolü yazma.
+On screens using `useSuspenseQuery`, `isPending` is never `true`; loading is handled by the route's `pendingComponent`. Do not combine `useSuspenseQuery` with an `isPending` check on the same screen.
 
 ---
 
 ## Forms
 
-Formlar `react-hook-form` + `zod` ile oluşturulur. Validation kurallarını backend davranışından bağımsız uydurma; API sözleşmesi bilinmiyorsa `api/API.md`'yi incele.
+Forms are built with `react-hook-form` + `zod`. Do not invent validation rules independently of backend behavior; if the API contract is unknown, inspect `api/API.md`.
 
 ---
 
 ## Notifications
 
-Bildirimler UI katmanında yönetilir. `sonner` component veya feature seviyesinde kullanılabilir; API service, Axios interceptor veya route guard içinde kullanılmaz.
+Notifications are handled in the UI layer. `sonner` may be used at the component or feature level; do not use it in API services, Axios interceptors, or the route guard.
 
 ---
 
-## Kod Kuralları
+## Code Rules
 
-- Dosya adları **kebab-case**: `app-sidebar.tsx`, `route-pending.tsx`, `use-products.ts`, `columns.tsx`. Export edilen component adı PascalCase kalır. (shadcn CLI kebab-case üretiyor; proje genelinde tek stil için tümü buna uyduruldu.)
-- Yorum yazma; isimlendirme açıklayıcı olsun.
-- `console.log` bırakma.
-- Ham `axios` import etme; tüm istekler `src/api/axios-client.ts` üzerinden gider.
+- File names use **kebab-case**: `app-sidebar.tsx`, `route-pending.tsx`, `use-products.ts`, `columns.tsx`. Exported component names remain PascalCase. (The shadcn CLI generates kebab-case; everything was standardized to this style across the project.)
+- Do not write comments; use descriptive naming instead.
+- Do not leave `console.log`.
+- Do not import raw `axios`; all requests go through `src/api/axios-client.ts`.
 
 ---
 
 ## Scope Control
 
-İstenen görev dışında refactor yapma. Kullanıcı yalnızca bir component istediğinde:
+Do not refactor outside the requested task. When the user asks for only a single component:
 
-- yeni hook oluşturma,
-- yeni utility oluşturma,
-- yeni route ekleme,
-- yeni dependency ekleme,
-- architecture değişikliği yapma,
-- ilgisiz dosyaları düzenleme.
+- do not create a new hook,
+- do not create a new utility,
+- do not add a new route,
+- do not add a new dependency,
+- do not change the architecture,
+- do not edit unrelated files.
 
-Bir problem mevcut görev kapsamında çözülmüyorsa kapsamı kendin genişletmek yerine kullanıcıya bildir.
+If a problem cannot be solved within the current task's scope, report it to the user instead of expanding the scope yourself.
 
 ---
 
 ## Validation
 
-Her değişiklikten sonra:
+After every change:
 
 ```bash
 npx tsc -b
 ```
 
-**`npx tsc --noEmit` kullanma.** Kök `tsconfig.json` solution-style olduğu için 0 dosya kontrol eder ve sahte-yeşil sonuç verir.
+**Do not use `npx tsc --noEmit`.** Because the root `tsconfig.json` is solution-style, it checks 0 files and can produce a falsely green result.
 
-Gerektiğinde mevcut script'ler:
+When necessary, existing scripts:
 
 ```bash
 pnpm run lint
 pnpm run build
 ```
 
-Görev yalnızca belirli bir dosyayı etkiliyorsa geniş kapsamlı değişiklik yapma.
+If the task affects only a specific file, do not make broad changes.
 
 ---
 
 ## Documentation
 
-- Kurulum ve araç yapılandırması: `INSTALLATION.md`
-- API sözleşmesi: `api/API.md`
-- Karar gerekçeleri: `docs/decisions.md`
-- Feature gereksinimleri: `.specs/` altındaki ilgili spec
-- Mimari kurallar: bu dosya (§ Mimari)
+- Installation and tool configuration: `INSTALLATION.md`
+- API contract: `api/API.md`
+- Decision rationales: `docs/DECISIONS.md`
+- Feature requirements: the relevant spec under `.specs/`
+- Architecture rules: this file (§ Architecture)

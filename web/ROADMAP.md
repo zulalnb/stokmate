@@ -1,6 +1,6 @@
 # Roadmap
 
-Planned progress for the `web/` project. See `INSTALLATION.md` for setup details, `AGENTS.md` for rules, `docs/decisions.md` for decision rationales, and the `.specs/` folder for feature-based planning.
+Planned progress for the `web/` project. See `INSTALLATION.md` for setup details, `AGENTS.md` for rules, `docs/DECISIONS.md` for decision rationales, and the `.specs/` folder for feature-based planning.
 
 ---
 
@@ -86,9 +86,9 @@ Supplier selection was implemented in create/edit form, so `suppliers.service.ts
 
 ## Phase 5 — Delivery
 
-- [ ] Complete `docs/decisions.md` (Phases 0-4 decisions).
+- [ ] Complete `docs/DECISIONS.md` (Phases 0-4 decisions).
 - [ ] `README.md` — run steps, assumptions, library rationales, unfinished items.
-- [x] Bonus scenario implemented or marked as out of scope in README — 60 sec `refetchInterval` in `productsQuery()` and `statsQuery()` (see `docs/decisions.md`).
+- [x] Bonus scenario implemented or marked as out of scope in README — 60 sec `refetchInterval` in `productsQuery()` and `statsQuery()` (see `docs/DECISIONS.md`).
 - [ ] Check `.env.example` and `.gitignore`; repo works cleanly on fresh clone.
 
 ---

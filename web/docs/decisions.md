@@ -147,7 +147,7 @@ configuring `watchFolders` and `extraNodeModules`, aligning TypeScript paths on 
 
 ## Documentation separation
 
-**Selected:** `AGENTS.md` (always-valid rules), `INSTALLATION.md` (setup and pitfalls), `docs/decisions.md` (rationales), `.specs/` (feature plans)
+**Selected:** `AGENTS.md` (always-valid rules), `INSTALLATION.md` (setup and pitfalls), `docs/DECISIONS.md` (rationales), `.specs/` (feature plans)
 **Rejected:** A single large document or a separate `ARCHITECTURE.md`
 
 The separation is based on time: rules are valid for every task, installation is done once, decisions were made in the past, specs are for the current work. `AGENTS.md` is read every round, so including setup details would reduce its signal. Architectural rules were not moved to a separate file; a separate file would add an extra navigation step each round and the current size of `AGENTS.md` doesn't warrant splitting.

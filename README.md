@@ -13,8 +13,8 @@ mobile/   React Native (Expo) field application
 Each subproject contains its own rules and decision documents — they are not repeated here:
 
 - `api/README.md`, `api/API.md` — setup instructions and API reference
-- `web/AGENTS.md`, `web/docs/decisions.md`, `web/ROADMAP.md`
-- `mobile/AGENTS.md`, `mobile/docs/decisions.md`
+- `web/AGENTS.md`, `web/docs/DECISIONS.md`, `web/ROADMAP.md`
+- `mobile/AGENTS.md`, `mobile/docs/DECISIONS.md`
 
 ## How to run
 
@@ -94,11 +94,11 @@ Alternatively, `eas build -p android --profile preview` can be used with an Expo
 - Stock updates — the primary task for field staff
 - Logout
 
-**Bonus (implemented):** The web product list and stock summary automatically refresh every 60 seconds (`refetchInterval`). A stock update made by another client (e.g. the mobile application) therefore appears in the list within at most one minute. Refreshing pauses while the browser tab is in the background. The rationale and rejected alternatives (`refetchOnWindowFocus` alone, SSE) are documented in `web/docs/decisions.md`.
+**Bonus (implemented):** The web product list and stock summary automatically refresh every 60 seconds (`refetchInterval`). A stock update made by another client (e.g. the mobile application) therefore appears in the list within at most one minute. Refreshing pauses while the browser tab is in the background. The rationale and rejected alternatives (`refetchOnWindowFocus` alone, SSE) are documented in `web/docs/DECISIONS.md`.
 
 ## Decisions
 
-The full rationale is documented in `web/docs/decisions.md` and `mobile/docs/decisions.md` (selected / rejected / rationale / trade-off); only a summary is provided here.
+The full rationale is documented in `web/docs/DECISIONS.md` and `mobile/docs/DECISIONS.md` (selected / rejected / rationale / trade-off); only a summary is provided here.
 
 **Web**
 
