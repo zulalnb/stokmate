@@ -2,7 +2,7 @@ using StokMate.Api.Data;
 
 namespace StokMate.Api.Models;
 
-/// <summary>Ürün yanıtı. Fiyat KURUŞ cinsindendir (1999 = 19,99 TL).</summary>
+/// <summary>Product response. Prices are expressed in KURUŞ (1999 = 19.99 TRY).</summary>
 public class ProductDto
 {
     public int Id { get; set; }
@@ -17,7 +17,7 @@ public class ProductDto
     public int BrandId { get; set; }
     public string BrandName { get; set; } = "";
 
-    /// <summary>Satış fiyatı, KURUŞ cinsinden.</summary>
+    /// <summary>Sale price, expressed in KURUŞ.</summary>
     public int Price { get; set; }
 
     public int Stock { get; set; }
@@ -30,7 +30,7 @@ public class ProductDto
     public DateTime UpdatedAt { get; set; }
 }
 
-/// <summary>GET /products/{id} yanıtı. Fiyat KURUŞ cinsindendir (1999 = 19,99 TL).</summary>
+/// <summary>Response for GET /products/{id}. Prices are expressed in KURUŞ (1999 = 19.99 TRY).</summary>
 public class ProductDetailDto
 {
     public int Id { get; set; }
@@ -47,10 +47,10 @@ public class ProductDetailDto
 
     public int SupplierId { get; set; }
 
-    /// <summary>Satış fiyatı, KURUŞ cinsinden.</summary>
+    /// <summary>Sale price, expressed in KURUŞ.</summary>
     public int Price { get; set; }
 
-    /// <summary>Alış maliyeti, KURUŞ cinsinden.</summary>
+    /// <summary>Purchase cost, expressed in KURUŞ.</summary>
     public int CostPrice { get; set; }
 
     public int Stock { get; set; }
@@ -64,20 +64,20 @@ public class ProductDetailDto
     public DateTime UpdatedAt { get; set; }
 }
 
-/// <summary>GET /products sorgu parametreleri.</summary>
+/// <summary>Query parameters for GET /products.</summary>
 public class ProductQuery
 {
-    /// <summary>Arama terimi.</summary>
+    /// <summary>Search term.</summary>
     public string? Q { get; set; }
 
     public int? CategoryId { get; set; }
     public int? BrandId { get; set; }
     public ProductStatus? Status { get; set; }
 
-    /// <summary>1'den başlar.</summary>
+    /// <summary>Starts at 1.</summary>
     public int Page { get; set; } = 1;
 
-    /// <summary>Varsayılan 20, en fazla 100.</summary>
+    /// <summary>Defaults to 20, with a maximum of 100.</summary>
     public int PageSize { get; set; } = 20;
 
     /// <summary>name | price | stock | updatedAt</summary>
@@ -87,7 +87,7 @@ public class ProductQuery
     public string? Dir { get; set; }
 }
 
-/// <summary>POST /products gövdesi.</summary>
+/// <summary>Request body for POST /products.</summary>
 public class CreateProductRequest
 {
     public string Name { get; set; } = "";
@@ -98,10 +98,10 @@ public class CreateProductRequest
     public int BrandId { get; set; }
     public int SupplierId { get; set; }
 
-    /// <summary>Satış fiyatı, KURUŞ cinsinden.</summary>
+    /// <summary>Sale price, expressed in KURUŞ.</summary>
     public int Price { get; set; }
 
-    /// <summary>Alış maliyeti, KURUŞ cinsinden.</summary>
+    /// <summary>Purchase cost, expressed in KURUŞ.</summary>
     public int CostPrice { get; set; }
 
     public int Stock { get; set; }
@@ -114,7 +114,7 @@ public class CreateProductRequest
     public bool IsFeatured { get; set; }
 }
 
-/// <summary>PUT /products/{id} gövdesi. Ürünün tüm alanları gönderilir.</summary>
+/// <summary>Request body for PUT /products/{id}. All product fields are sent.</summary>
 public class UpdateProductRequest
 {
     public string Name { get; set; } = "";
@@ -125,10 +125,10 @@ public class UpdateProductRequest
     public int BrandId { get; set; }
     public int SupplierId { get; set; }
 
-    /// <summary>Satış fiyatı, KURUŞ cinsinden.</summary>
+    /// <summary>Sale price, expressed in KURUŞ.</summary>
     public int Price { get; set; }
 
-    /// <summary>Alış maliyeti, KURUŞ cinsinden.</summary>
+    /// <summary>Purchase cost, expressed in KURUŞ.</summary>
     public int CostPrice { get; set; }
 
     public int Stock { get; set; }
@@ -141,21 +141,21 @@ public class UpdateProductRequest
     public bool IsFeatured { get; set; }
 }
 
-/// <summary>PATCH /products/{id}/stock gövdesi.</summary>
+/// <summary>Request body for PATCH /products/{id}/stock.</summary>
 public class UpdateStockRequest
 {
     public int Stock { get; set; }
 }
 
-/// <summary>GET /products/stats yanıtı.</summary>
+/// <summary>Response for GET /products/stats.</summary>
 public class ProductStatsDto
 {
-    /// <summary>Toplam ürün sayısı.</summary>
+    /// <summary>Total number of products.</summary>
     public int Total { get; set; }
 
-    /// <summary>Stoğu tükenmiş ürün sayısı.</summary>
+    /// <summary>Number of products that are out of stock.</summary>
     public int OutOfStock { get; set; }
 
-    /// <summary>Kritik eşiğe inmiş (ama tükenmemiş) ürün sayısı.</summary>
+    /// <summary>Number of products that have reached the critical stock threshold but are not out of stock.</summary>
     public int LowStock { get; set; }
 }

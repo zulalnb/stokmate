@@ -1,17 +1,17 @@
 namespace StokMate.Api.Models;
 
-/// <summary>Sayfalanmış liste yanıtı.</summary>
+/// <summary>Paginated list response.</summary>
 public class PagedResult<T>
 {
-    /// <summary>Geçerli sayfadaki kayıtlar.</summary>
+    /// <summary>Records on the current page.</summary>
     public List<T> Items { get; set; } = new();
 
-    /// <summary>Filtrelere uyan toplam kayıt sayısı (sayfalama öncesi).</summary>
+    /// <summary>Total number of records matching the filters (before pagination).</summary>
     public int Total { get; set; }
 
-    /// <summary>Geçerli sayfa numarası (1'den başlar).</summary>
+    /// <summary>Current page number (starts at 1).</summary>
     public int Page { get; set; }
 
-    /// <summary>Sayfa başına kayıt sayısı.</summary>
+    /// <summary>Number of records per page.</summary>
     public int PageSize { get; set; }
 }

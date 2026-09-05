@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 namespace StokMate.Api.Data;
 
 /// <summary>
-/// Uygulamanın veritabanı bağlamı. Bellek içi (InMemory) sağlayıcı ile çalışır;
-/// uygulama kapandığında tüm veriler kaybolur.
+/// The application's database context. Uses the InMemory provider;
+/// all data is lost when the application shuts down.
 /// </summary>
 public class AppDbContext : DbContext
 {

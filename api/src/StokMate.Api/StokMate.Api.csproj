@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <!-- Makinede yalnızca .NET 9/10 çalışma zamanı olsa bile uygulama açılabilsin. -->
+    <!-- Allow the application to run even if the machine only has the .NET 9/10 runtime installed. -->
     <RollForward>LatestMajor</RollForward>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- Controller özet yorumları Swagger arayüzünde görünsün. -->
+    <!-- Display controller summary comments in the Swagger UI. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- Her public üye için XML yorumu zorunlu değil. -->
+    <!-- XML comments are not required for every public member. -->
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 

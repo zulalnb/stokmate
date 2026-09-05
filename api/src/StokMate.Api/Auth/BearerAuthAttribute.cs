@@ -4,9 +4,10 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace StokMate.Api.Auth;
 
 /// <summary>
-/// "Authorization: Bearer &lt;token&gt;" başlığını doğrular. Başlık yoksa veya anahtar
-/// geçersiz/süresi dolmuşsa action hiç çalışmadan 401 + düz metin döner.
-/// Doğrulanan kullanıcı Id'si HttpContext.Items içine yazılır.
+/// Validates the "Authorization: Bearer &lt;token&gt;" header. If the header is missing
+/// or the token is invalid/expired, the action is never executed and a 401 response
+/// with a plain-text body is returned.
+/// The authenticated user's Id is stored in HttpContext.Items.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public class BearerAuthAttribute : Attribute, IAuthorizationFilter
@@ -20,19 +21,19 @@ public class BearerAuthAttribute : Attribute, IAuthorizationFilter
 
         if (string.IsNullOrWhiteSpace(header) || !header.StartsWith(Scheme, StringComparison.OrdinalIgnoreCase))
         {
-            context.Result = PlainTextUnauthorized("Yetkilendirme başlığı eksik veya hatalı.");
+            context.Result = PlainTextUnauthorized("Authorization header is missing or invalid.");
             return;
         }
 
         var token = header[Scheme.Length..].Trim();
 
-        // TokenService singleton; istek kapsamından çözülür.
+        // TokenService is a singleton; resolve it from the request scope.
         var tokenService = context.HttpContext.RequestServices.GetRequiredService<TokenService>();
         var userId = tokenService.Validate(token);
 
         if (userId is null)
         {
-            context.Result = PlainTextUnauthorized("Erişim anahtarı geçersiz veya süresi dolmuş.");
+            context.Result = PlainTextUnauthorized("Access token is invalid or expired.");
             return;
         }
 
@@ -40,8 +41,9 @@ public class BearerAuthAttribute : Attribute, IAuthorizationFilter
     }
 
     /// <summary>
-    /// Hata gövdeleri düz metin olduğu için Unauthorized() yerine ContentResult döner
-    /// (Unauthorized() gövdesiz kalır ve [ApiController] tarafından JSON'a çevrilirdi).
+    /// Since error responses use plain text, return a ContentResult instead of
+    /// Unauthorized(). Unauthorized() would have no body and [ApiController]
+    /// could convert the response to JSON.
     /// </summary>
     private static ContentResult PlainTextUnauthorized(string message) => new()
     {
@@ -53,7 +55,7 @@ public class BearerAuthAttribute : Attribute, IAuthorizationFilter
 
 public static class BearerAuthExtensions
 {
-    /// <summary>[BearerAuth] ile doğrulanmış kullanıcının Id'si.</summary>
+    /// <summary>Returns the Id of the user authenticated with [BearerAuth].</summary>
     public static int GetUserId(this HttpContext context)
         => (int)context.Items[BearerAuthAttribute.UserIdItemKey]!;
 }

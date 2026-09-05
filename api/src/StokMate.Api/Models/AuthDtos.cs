@@ -23,13 +23,13 @@ public class UserDto
     public string FullName { get; set; } = "";
 }
 
-/// <summary>Giriş ve yenileme uçlarının ortak yanıtı.</summary>
+/// <summary>Common response for login and refresh endpoints.</summary>
 public class AuthResponse
 {
     public string AccessToken { get; set; } = "";
     public string RefreshToken { get; set; } = "";
 
-    /// <summary>Erişim anahtarının son geçerlilik anı (UTC).</summary>
+    /// <summary>The expiration time of the access token (UTC).</summary>
     public DateTime ExpiresAt { get; set; }
 
     public UserDto User { get; set; } = new();

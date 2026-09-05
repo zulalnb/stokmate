@@ -3,20 +3,20 @@ using System.Collections.Concurrent;
 namespace StokMate.Api.Auth;
 
 /// <summary>
-/// Opak (GUID) erişim anahtarları üretir ve süreç belleğinde tutar.
-/// Anahtarlar bellekte tutulduğu için DI'a singleton olarak kaydedilir;
-/// uygulama yeniden başladığında tüm oturumlar düşer.
+/// Generates opaque (GUID) access tokens and stores them in process memory.
+/// Since tokens are stored in memory, the service is registered as a singleton in DI;
+/// all sessions are invalidated when the application restarts.
 /// </summary>
 public class TokenService
 {
-    /// <summary>Erişim anahtarının geçerlilik süresi.</summary>
+    /// <summary>The lifetime of an access token.</summary>
     public static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(15);
 
     private readonly ConcurrentDictionary<string, AccessToken> _tokens = new();
 
     private record AccessToken(int UserId, DateTime ExpiresAt);
 
-    /// <summary>Kullanıcı için yeni bir erişim anahtarı üretir.</summary>
+    /// <summary>Generates a new access token for the user.</summary>
     public (string Token, DateTime ExpiresAt) Issue(int userId)
     {
         var token = Guid.NewGuid().ToString("N");
@@ -26,7 +26,7 @@ public class TokenService
         return (token, expiresAt);
     }
 
-    /// <summary>Anahtar geçerliyse kullanıcı Id'sini, değilse null döner.</summary>
+    /// <summary>Returns the user's Id if the token is valid; otherwise, returns null.</summary>
     public int? Validate(string token)
     {
         if (!_tokens.TryGetValue(token, out var entry))
@@ -36,7 +36,7 @@ public class TokenService
 
         if (entry.ExpiresAt <= DateTime.UtcNow)
         {
-            // Süresi dolmuş anahtar bellekte tutulmaz.
+            // Expired tokens are removed from memory.
             _tokens.TryRemove(token, out _);
             return null;
         }
@@ -44,7 +44,7 @@ public class TokenService
         return entry.UserId;
     }
 
-    /// <summary>Kullanıcının tüm erişim anahtarlarını düşürür (çıkış yapıldığında).</summary>
+    /// <summary>Revokes all access tokens for the user (when logging out).</summary>
     public void RevokeAllForUser(int userId)
     {
         foreach (var pair in _tokens.Where(p => p.Value.UserId == userId))

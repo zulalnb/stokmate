@@ -3,15 +3,15 @@ using StokMate.Api.Auth;
 namespace StokMate.Api.Data;
 
 /// <summary>
-/// Bellek içi veritabanını uygulama açılışında örnek verilerle doldurur.
-/// Stok değerleri bilinçli olarak karışıktır: bir kısmı tükenmiş, bir kısmı kritik
-/// eşiğin altında, çoğu bol; böylece stok rozetleri ve /products/stats anlamlı olur.
+/// Seeds the in-memory database with sample data when the application starts.
+/// Stock values are intentionally varied: some are out of stock, some are below the critical
+/// threshold, and most have plenty of stock; this makes the stock badges and /products/stats meaningful.
 /// </summary>
 public static class DbSeeder
 {
     public static void Seed(AppDbContext db)
     {
-        // Tekrar tohumlamayı engelle.
+        // Prevent duplicate seeding.
         if (db.Products.Any())
         {
             return;
@@ -139,7 +139,7 @@ public static class DbSeeder
                               $"{supplierNames[row.SupplierId]} tarafından tedarik edilir.",
                 IsFeatured = row.IsFeatured,
                 CreatedAt = createdStart.AddDays(i * 2),
-                // Güncelleme tarihleri yayılır ki sort=updatedAt anlamlı bir sonuç versin.
+                // Spread update dates so that sort=updatedAt produces meaningful results.
                 UpdatedAt = now.AddDays(-((i * 13) % 60)).AddMinutes(-(i * 7))
             });
         }
@@ -147,7 +147,7 @@ public static class DbSeeder
         return products;
     }
 
-    /// <summary>Ürün tohumlama tablosu. Fiyatlar KURUŞ cinsindendir (3950 = 39,50 TL).</summary>
+    /// <summary>Product seed data. Prices are stored in KURUŞ (3950 = 39.50 TL).</summary>
     private static readonly (string Name, string Sku, string Barcode, int CategoryId, int BrandId, int SupplierId,
         int Price, int CostPrice, int Stock, int MinStock, ProductUnit Unit, ProductStatus Status, bool IsFeatured)[]
         ProductRows =

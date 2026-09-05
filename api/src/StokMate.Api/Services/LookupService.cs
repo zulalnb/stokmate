@@ -4,7 +4,7 @@ using StokMate.Api.Models;
 
 namespace StokMate.Api.Services;
 
-/// <summary>Ürün formlarında ve filtrelerde kullanılan sabit listeler.</summary>
+/// <summary>Lookup lists used in product forms and filters.</summary>
 public class LookupService
 {
     private readonly AppDbContext _db;

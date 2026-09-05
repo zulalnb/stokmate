@@ -17,37 +17,37 @@ public class ProductsController : ControllerBase
         _productService = productService;
     }
 
-    /// <summary>Filtrelenebilir, sıralanabilir ve sayfalanabilir ürün listesi.</summary>
+    /// <summary>Filterable, sortable, and paginated product list.</summary>
     [HttpGet]
     public async Task<ActionResult<PagedResult<ProductDto>>> GetList([FromQuery] ProductQuery query)
         => await _productService.GetListAsync(query);
 
-    /// <summary>Stok durumu özeti.</summary>
+    /// <summary>Stock status summary.</summary>
     [HttpGet("stats")]
     public async Task<ActionResult<ProductStatsDto>> GetStats()
         => await _productService.GetStatsAsync();
 
-    /// <summary>Tek bir ürünü tüm alanlarıyla getirir.</summary>
+    /// <summary>Retrieves a single product with all its fields.</summary>
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ProductDetailDto>> GetById(int id)
         => await _productService.GetByIdAsync(id);
 
-    /// <summary>Yeni ürün oluşturur.</summary>
+    /// <summary>Creates a new product.</summary>
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create([FromBody] CreateProductRequest request)
         => StatusCode(StatusCodes.Status201Created, await _productService.CreateAsync(request));
 
-    /// <summary>Ürünün tüm alanlarını günceller.</summary>
+    /// <summary>Updates all fields of a product.</summary>
     [HttpPut("{id:int}")]
     public async Task<ActionResult<ProductDto>> Update(int id, [FromBody] UpdateProductRequest request)
         => await _productService.UpdateAsync(id, request);
 
-    /// <summary>Yalnızca stok miktarını günceller.</summary>
+    /// <summary>Updates only the stock quantity.</summary>
     [HttpPatch("{id:int}/stock")]
     public async Task<ActionResult<ProductDto>> UpdateStock(int id, [FromBody] UpdateStockRequest request)
         => await _productService.UpdateStockAsync(id, request);
 
-    /// <summary>Ürünü siler.</summary>
+    /// <summary>Deletes a product.</summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

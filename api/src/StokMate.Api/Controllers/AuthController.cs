@@ -16,17 +16,17 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
-    /// <summary>E-posta ve şifre ile giriş yapar, anahtar çifti döner.</summary>
+    /// <summary>Logs in with an email and password and returns a token pair.</summary>
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
         => await _authService.LoginAsync(request);
 
-    /// <summary>Yenileme anahtarını yeni bir anahtar çiftiyle değiştirir.</summary>
+    /// <summary>Exchanges the refresh token for a new token pair.</summary>
     [HttpPost("refresh")]
     public async Task<ActionResult<AuthResponse>> Refresh([FromBody] RefreshRequest request)
         => await _authService.RefreshAsync(request);
 
-    /// <summary>Oturumu kapatır ve yenileme anahtarını iptal eder.</summary>
+    /// <summary>Logs out and revokes the refresh token.</summary>
     [BearerAuth]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
@@ -35,7 +35,7 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>Oturum açmış kullanıcının bilgilerini döner.</summary>
+    /// <summary>Returns the information of the authenticated user.</summary>
     [BearerAuth]
     [HttpGet("me")]
     public async Task<ActionResult<UserDto>> Me()

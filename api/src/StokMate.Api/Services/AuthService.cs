@@ -6,10 +6,10 @@ using StokMate.Api.Models;
 
 namespace StokMate.Api.Services;
 
-/// <summary>Giriş, anahtar yenileme ve çıkış işlemleri.</summary>
+/// <summary>Login, token refresh, and logout operations.</summary>
 public class AuthService
 {
-    /// <summary>Yenileme anahtarının geçerlilik süresi.</summary>
+    /// <summary>Refresh token lifetime.</summary>
     private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(7);
 
     private readonly AppDbContext _db;
@@ -25,17 +25,17 @@ public class AuthService
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
         {
-            throw new ValidationException("E-posta ve şifre zorunludur.");
+            throw new ValidationException("Email and password are required.");
         }
 
         var email = request.Email.Trim().ToLowerInvariant();
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-        // Kullanıcı yok ve şifre yanlış durumları aynı mesajı döner; hangi e-postanın
-        // kayıtlı olduğu dışarıya sızdırılmaz.
+        // Both a missing user and an incorrect password return the same message;
+        // this prevents revealing which email addresses are registered.
         if (user is null || !PasswordHasher.Verify(request.Password, user.PasswordSalt, user.PasswordHash))
         {
-            throw new UnauthorizedException("E-posta veya şifre hatalı.");
+            throw new UnauthorizedException("Invalid email or password.");
         }
 
         return await IssueTokensAsync(user);
@@ -45,21 +45,21 @@ public class AuthService
     {
         if (string.IsNullOrWhiteSpace(request.RefreshToken))
         {
-            throw new ValidationException("Yenileme anahtarı zorunludur.");
+            throw new ValidationException("Refresh token is required.");
         }
 
         var stored = await _db.RefreshTokens.FirstOrDefaultAsync(t => t.Token == request.RefreshToken);
 
         if (stored is null || stored.RevokedAt is not null || stored.ExpiresAt <= DateTime.UtcNow)
         {
-            throw new UnauthorizedException("Yenileme anahtarı geçersiz veya süresi dolmuş.");
+            throw new UnauthorizedException("Invalid or expired refresh token.");
         }
 
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == stored.UserId)
-                   ?? throw new UnauthorizedException("Yenileme anahtarı geçersiz veya süresi dolmuş.");
+                   ?? throw new UnauthorizedException("Invalid or expired refresh token.");
 
-        // Rotasyon: kullanılan anahtar iptal edilir, yerine yenisi verilir.
-        // Böylece çalınan bir anahtar en fazla bir kez kullanılabilir.
+        // Rotation: the used token is revoked and replaced with a new one.
+        // This ensures a stolen token can be used at most once.
         stored.RevokedAt = DateTime.UtcNow;
 
         return await IssueTokensAsync(user);
@@ -70,27 +70,27 @@ public class AuthService
         var stored = await _db.RefreshTokens
             .FirstOrDefaultAsync(t => t.Token == refreshToken && t.UserId == userId);
 
-        // Çıkış her koşulda başarılı sayılır; anahtar zaten iptalse hata verilmez.
+        // Logout is considered successful in all cases; no error is returned if the token is already revoked.
         if (stored is not null && stored.RevokedAt is null)
         {
             stored.RevokedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
         }
 
-        // Erişim anahtarları bellekte tutulduğu için oturumu gerçekten kapatmak adına
-        // kullanıcının açık anahtarları da düşürülür.
+        // Since access tokens are kept in memory, the user's active tokens are also revoked
+        // to fully terminate the session.
         _tokenService.RevokeAllForUser(userId);
     }
 
     public async Task<UserDto> GetMeAsync(int userId)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId)
-                   ?? throw new NotFoundException("Kullanıcı bulunamadı.");
+                   ?? throw new NotFoundException("User not found.");
 
         return ToDto(user);
     }
 
-    /// <summary>Kullanıcı için yeni bir erişim + yenileme anahtarı çifti üretir.</summary>
+    /// <summary>Generates a new access + refresh token pair for the user.</summary>
     private async Task<AuthResponse> IssueTokensAsync(User user)
     {
         var (accessToken, expiresAt) = _tokenService.Issue(user.Id);

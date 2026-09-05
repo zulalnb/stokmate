@@ -5,7 +5,7 @@ using StokMate.Api.Models;
 
 namespace StokMate.Api.Services;
 
-/// <summary>Ürün listeleme, oluşturma, güncelleme ve silme işlemleri.</summary>
+/// <summary>Product listing, creation, update, and deletion operations.</summary>
 public class ProductService
 {
     private const int DefaultPageSize = 20;
@@ -52,7 +52,7 @@ public class ProductService
             products = products.Where(p => p.Status == query.Status);
         }
 
-        // Toplam, sayfalama uygulanmadan önce hesaplanır.
+        // The total is calculated before pagination is applied.
         var total = await products.CountAsync();
 
         var rows = await ApplySort(products, query.Sort, query.Dir)
@@ -75,7 +75,7 @@ public class ProductService
             .Include(p => p.Category)
             .Include(p => p.Brand)
             .FirstOrDefaultAsync(p => p.Id == id)
-            ?? throw new NotFoundException($"{id} numaralı ürün bulunamadı.");
+            ?? throw new NotFoundException($"Product with ID {id} was not found.");
 
         return ToDetailDto(product);
     }
@@ -119,7 +119,7 @@ public class ProductService
         _db.Products.Add(product);
         await _db.SaveChangesAsync();
 
-        // Görsel adresi Id'den türetilir; Id ancak kayıt sonrasında bellidir.
+        // The image URL is derived from the ID; the ID is only available after the record is created.
         product.ImageUrl = BuildImageUrl(product.Id);
         await _db.SaveChangesAsync();
 
@@ -161,7 +161,7 @@ public class ProductService
     {
         if (request.Stock < 0)
         {
-            throw new ValidationException("Stok negatif olamaz.");
+            throw new ValidationException("Stock cannot be negative.");
         }
 
         var product = await FindAsync(id);
@@ -184,9 +184,9 @@ public class ProductService
 
     private async Task<Product> FindAsync(int id)
         => await _db.Products.FirstOrDefaultAsync(p => p.Id == id)
-           ?? throw new NotFoundException($"{id} numaralı ürün bulunamadı.");
+           ?? throw new NotFoundException($"Product with ID {id} was not found.");
 
-    /// <summary>Yanıt için ürünü kategori ve marka adlarıyla birlikte yeniden okur.</summary>
+    /// <summary>Reloads the product with category and brand names for the response.</summary>
     private async Task<ProductDto> LoadDtoAsync(int id)
     {
         var product = await _db.Products
@@ -197,7 +197,7 @@ public class ProductService
         return ToDto(product);
     }
 
-    /// <summary>sort=name|price|stock|updatedAt, dir=asc|desc. Tanınmayan değerde ada göre sıralanır.</summary>
+    /// <summary>sort=name|price|stock|updatedAt, dir=asc|desc. Unknown values are sorted by name.</summary>
     private static IQueryable<Product> ApplySort(IQueryable<Product> products, string? sort, string? dir)
     {
         var descending = string.Equals(dir, "desc", StringComparison.OrdinalIgnoreCase);
@@ -210,7 +210,7 @@ public class ProductService
             _ => descending ? products.OrderByDescending(p => p.Name) : products.OrderBy(p => p.Name)
         };
 
-        // Eşit değerlerde sayfalar arası tutarlılık için ikincil anahtar.
+        // Secondary key for consistent ordering across pages when values are equal.
         return ordered.ThenBy(p => p.Id);
     }
 
@@ -219,42 +219,42 @@ public class ProductService
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ValidationException("Ürün adı zorunludur.");
+            throw new ValidationException("Product name is required.");
         }
 
         if (string.IsNullOrWhiteSpace(sku))
         {
-            throw new ValidationException("Stok kodu (sku) zorunludur.");
+            throw new ValidationException("SKU is required.");
         }
 
         if (price < 0)
         {
-            throw new ValidationException("Fiyat negatif olamaz.");
+            throw new ValidationException("Price cannot be negative.");
         }
 
         if (costPrice < 0)
         {
-            throw new ValidationException("Maliyet negatif olamaz.");
+            throw new ValidationException("Cost cannot be negative.");
         }
 
         if (stock < 0)
         {
-            throw new ValidationException("Stok negatif olamaz.");
+            throw new ValidationException("Stock cannot be negative.");
         }
 
         if (minStock < 0)
         {
-            throw new ValidationException("Minimum stok negatif olamaz.");
+            throw new ValidationException("Minimum stock cannot be negative.");
         }
 
         if (!Enum.IsDefined(unit))
         {
-            throw new ValidationException("Geçersiz birim değeri.");
+            throw new ValidationException("Invalid unit value.");
         }
 
         if (!Enum.IsDefined(status))
         {
-            throw new ValidationException("Geçersiz durum değeri.");
+            throw new ValidationException("Invalid status value.");
         }
     }
 
@@ -262,21 +262,21 @@ public class ProductService
     {
         if (!await _db.Categories.AnyAsync(c => c.Id == categoryId))
         {
-            throw new ValidationException($"{categoryId} numaralı kategori bulunamadı.");
+            throw new ValidationException($"Category with ID {categoryId} was not found.");
         }
 
         if (!await _db.Brands.AnyAsync(b => b.Id == brandId))
         {
-            throw new ValidationException($"{brandId} numaralı marka bulunamadı.");
+            throw new ValidationException($"Brand with ID {brandId} was not found.");
         }
 
         if (!await _db.Suppliers.AnyAsync(s => s.Id == supplierId))
         {
-            throw new ValidationException($"{supplierId} numaralı tedarikçi bulunamadı.");
+            throw new ValidationException($"Supplier with ID {supplierId} was not found.");
         }
     }
 
-    /// <summary>Aynı stok kodu birden fazla üründe kullanılamaz.</summary>
+    /// <summary>The same SKU cannot be used by multiple products.</summary>
     private async Task EnsureSkuIsAvailableAsync(string sku, int? excludeProductId)
     {
         var normalized = sku.Trim();
@@ -284,7 +284,7 @@ public class ProductService
 
         if (isTaken)
         {
-            throw new ConflictException($"'{normalized}' stok kodu başka bir üründe kullanılıyor.");
+            throw new ConflictException($"SKU '{normalized}' is already used by another product.");
         }
     }
 

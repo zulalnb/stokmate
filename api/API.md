@@ -1,83 +1,87 @@
-# StokMate API — Uç Referansı
+# StokMate API — Complete Endpoint Reference
 
-Temel adres: `http://localhost:5080`
+Base URL: `http://localhost:5080`
 
 ---
 
-## 1. Genel Kurallar
+## 1. General Rules
 
-### 1.1 Kimlik doğrulama
+### 1.1 Authentication
 
-`POST /auth/login` ve `POST /auth/refresh` dışındaki **tüm uçlar** kimlik doğrulama ister.
+All endpoints **except** `POST /auth/login` and `POST /auth/refresh` require authentication.
 
-Erişim anahtarını her istekte şu başlıkla gönderin:
+Send the access token in the following header with every request:
 
-```
+```text
 Authorization: Bearer <accessToken>
 ```
 
-- **accessToken** — 15 dakika geçerlidir. Süresi dolduğunda uçlar `401` döner.
-- **refreshToken** — 7 gün geçerlidir. `POST /auth/refresh` ile yeni bir anahtar çifti alınır.
-- Yenileme sırasında **rotasyon** uygulanır: kullanılan `refreshToken` iptal edilir ve yanıtta yeni bir `refreshToken` verilir. Eski anahtar bir daha kullanılamaz — istemcide her zaman en son dönen değeri saklayın.
+- **accessToken** — valid for 15 minutes. Endpoints return `401` when it expires.
+- **refreshToken** — valid for 7 days. Use `POST /auth/refresh` to obtain a new token pair.
+- **Rotation** is applied during refresh: the used `refreshToken` is revoked and a new `refreshToken` is returned in the response. The old token cannot be used again — always store the latest value returned by the server on the client.
 
-### 1.2 Hata yanıtları
+### 1.2 Error Responses
 
-> **Önemli:** Hata yanıtlarının gövdesi **düz metindir (`text/plain`), JSON değildir.**
-> Hata mesajını okurken gövdeyi `response.text()` ile alın; `response.json()` çağırmayın.
+> **Important:** Error response bodies are **plain text (`text/plain`), not JSON.**
+> Read the body with `response.text()` when handling errors; do not call `response.json()`.
 
-| Durum kodu | Anlamı | Örnek gövde |
+| Status Code | Meaning | Example Body |
 | --- | --- | --- |
-| `400` | İstek geçersiz | `Fiyat negatif olamaz.` |
-| `401` | Kimlik doğrulama başarısız / anahtar geçersiz | `Erişim anahtarı geçersiz veya süresi dolmuş.` |
-| `404` | Kayıt bulunamadı | `99 numaralı ürün bulunamadı.` |
-| `409` | Mevcut bir kayıtla çakışma | `'ICE-1001' stok kodu başka bir üründe kullanılıyor.` |
-| `500` | Beklenmeyen hata | `Beklenmeyen bir hata oluştu.` |
+| `400` | Invalid request | `Price cannot be negative.` |
+| `401` | Authentication failed / invalid token | `Access token is invalid or expired.` |
+| `404` | Record not found | `Product with ID 99 not found.` |
+| `409` | Conflict with an existing record | `SKU 'ICE-1001' is already used by another product.` |
+| `500` | Unexpected error | `An unexpected error occurred.` |
 
-Başarılı yanıtlar ise `application/json` döner.
+Successful responses return `application/json`.
 
-### 1.3 Para birimi
+### 1.3 Currency
 
-> **`price` ve `costPrice` alanları KURUŞ cinsinden `int` değerlerdir.**
+> **`price` and `costPrice` fields are `int` values in KURUŞ (Turkish cents).**
 >
-> | Alan değeri | Gösterilecek tutar |
+> | Field Value | Displayed Amount |
 > | --- | --- |
-> | `1999` | 19,99 ₺ |
-> | `3950` | 39,50 ₺ |
-> | `129900` | 1.299,00 ₺ |
+> | `1999` | ₺19.99 |
+> | `3950` | ₺39.50 |
+> | `129900` | ₺1,299.00 |
 >
-> Ekranda göstermek için 100'e bölün, API'ye gönderirken 100 ile çarpın.
-> Küsurat kaybı yaşamamak için hesaplamaları kuruş üzerinden yapın.
+> Divide by 100 when displaying values on the screen and multiply by 100 when sending them to the API.
+> Perform calculations in kuruş to avoid losing fractional values.
 
-### 1.4 Enum değerleri
+### 1.4 Enum Values
 
-Enum alanları JSON'da **sayı** olarak taşınır.
+Enum fields are transmitted as **numbers** in JSON.
 
-**`unit`** (birim)
+**`unit`**
 
-| Değer | Anlamı |
+| Value | Meaning |
 | --- | --- |
-| `1` | Adet |
+| `1` | Piece |
 | `2` | Kg |
-| `3` | Lt |
-| `4` | Paket |
+| `3` | Liter |
+| `4` | Package |
 
-**`status`** (durum)
+**`status`**
 
-| Değer | Anlamı |
+| Value | Meaning |
 | --- | --- |
-| `1` | Aktif |
-| `2` | Pasif |
-| `3` | Üretim Durduruldu |
+| `1` | Active |
+| `2` | Inactive |
+| `3` | Production Stopped |
 
-### 1.5 Tarihler
+### 1.5 Dates
 
-Tüm tarihler **UTC** ve ISO 8601 biçimindedir: `2026-07-17T12:39:31.9060307Z`
+All dates are in **UTC** and use ISO 8601 format:
+
+```text
+2026-07-17T12:39:31.9060307Z
+```
 
 ---
 
-## 2. Uç Listesi
+## 2. Endpoint List
 
-| Method | Path | Yetki |
+| Method | Path | Authorization |
 | --- | --- | --- |
 | `POST` | `/auth/login` | — |
 | `POST` | `/auth/refresh` | — |
@@ -96,27 +100,27 @@ Tüm tarihler **UTC** ve ISO 8601 biçimindedir: `2026-07-17T12:39:31.9060307Z`
 
 ---
 
-## 3. Auth
+## 3. Authentication
 
 ### 3.1 `POST /auth/login`
 
-Giriş yapar ve anahtar çifti döner.
+Logs in the user and returns a token pair.
 
-**İstek gövdesi**
+**Request Body**
 
-| Alan | Tip | Zorunlu |
+| Field | Type | Required |
 | --- | --- | --- |
-| `email` | string | evet |
-| `password` | string | evet |
+| `email` | string | Yes |
+| `password` | string | Yes |
 
 ```json
 {
-  "email": "test@ornek.com",
+  "email": "test@example.com",
   "password": "Test1234!"
 }
 ```
 
-**Yanıt — `200 OK`**
+**Response — `200 OK`**
 
 ```json
 {
@@ -125,33 +129,33 @@ Giriş yapar ve anahtar çifti döner.
   "expiresAt": "2026-07-17T12:53:34.0173723Z",
   "user": {
     "id": 1,
-    "email": "test@ornek.com",
+    "email": "test@example.com",
     "fullName": "Deniz Yılmaz"
   }
 }
 ```
 
-| Alan | Açıklama |
+| Field | Description |
 | --- | --- |
-| `accessToken` | `Authorization: Bearer` başlığında kullanılır |
-| `refreshToken` | Anahtar yenilemek için saklanır |
-| `expiresAt` | `accessToken`'ın son geçerlilik anı (UTC) |
-| `user` | Giriş yapan kullanıcı |
+| `accessToken` | Used in the `Authorization: Bearer` header |
+| `refreshToken` | Stored for refreshing the tokens |
+| `expiresAt` | Expiration time of the `accessToken` (UTC) |
+| `user` | Authenticated user |
 
-**Hatalar**
+**Errors**
 
-| Kod | Durum |
+| Code | Condition |
 | --- | --- |
-| `400` | `email` veya `password` boş |
-| `401` | E-posta veya şifre hatalı |
+| `400` | `email` or `password` is empty |
+| `401` | Invalid email or password |
 
 ---
 
 ### 3.2 `POST /auth/refresh`
 
-Yenileme anahtarını yeni bir anahtar çiftiyle değiştirir.
+Exchanges the refresh token for a new token pair.
 
-**İstek gövdesi**
+**Request Body**
 
 ```json
 {
@@ -159,29 +163,28 @@ Yenileme anahtarını yeni bir anahtar çiftiyle değiştirir.
 }
 ```
 
-**Yanıt — `200 OK`**
+**Response — `200 OK`**
 
-`POST /auth/login` ile aynı gövde (yeni `accessToken` + yeni `refreshToken`).
+Same response body as `POST /auth/login` (new `accessToken` + new `refreshToken`).
 
-> Yanıttaki yeni `refreshToken`'ı saklayın. Gönderdiğiniz eski anahtar iptal edilir ve
-> tekrar kullanılırsa `401` alırsınız.
+> Store the new `refreshToken` returned in the response. The old token you submitted is revoked and will return `401` if used again.
 
-**Hatalar**
+**Errors**
 
-| Kod | Durum |
+| Code | Condition |
 | --- | --- |
-| `400` | `refreshToken` boş |
-| `401` | Anahtar geçersiz, iptal edilmiş veya süresi dolmuş |
+| `400` | `refreshToken` is empty |
+| `401` | Token is invalid, revoked, or expired |
 
 ---
 
 ### 3.3 `POST /auth/logout`
 
-Oturumu kapatır. Gönderilen yenileme anahtarını iptal eder ve kullanıcının açık erişim anahtarlarını düşürür.
+Logs out the user. Revokes the submitted refresh token and invalidates the user's active access tokens.
 
-**Yetki:** `Authorization: Bearer <accessToken>`
+**Authorization:** `Authorization: Bearer <accessToken>`
 
-**İstek gövdesi**
+**Request Body**
 
 ```json
 {
@@ -189,57 +192,59 @@ Oturumu kapatır. Gönderilen yenileme anahtarını iptal eder ve kullanıcını
 }
 ```
 
-**Yanıt — `204 No Content`** (gövde yok)
+**Response — `204 No Content`**
+
+No response body.
 
 ---
 
 ### 3.4 `GET /auth/me`
 
-Oturum açmış kullanıcının bilgilerini döner.
+Returns information about the currently authenticated user.
 
-**Yetki:** `Authorization: Bearer <accessToken>`
+**Authorization:** `Authorization: Bearer <accessToken>`
 
-**Yanıt — `200 OK`**
+**Response — `200 OK`**
 
 ```json
 {
   "id": 1,
-  "email": "test@ornek.com",
+  "email": "test@example.com",
   "fullName": "Deniz Yılmaz"
 }
 ```
 
 ---
 
-## 4. Ürünler
+## 4. Products
 
 ### 4.1 `GET /products`
 
-Ürünleri filtreler, sıralar ve sayfalar.
+Filters, sorts, and paginates products.
 
-**Query parametreleri**
+**Query Parameters**
 
-| Parametre | Tip | Varsayılan | Açıklama |
+| Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `q` | string | — | Arama terimi. |
-| `categoryId` | int | — | Kategori filtresi |
-| `brandId` | int | — | Marka filtresi |
-| `status` | int | — | Durum filtresi (`1` \| `2` \| `3`) |
-| `page` | int | `1` | Sayfa numarası (1'den başlar) |
-| `pageSize` | int | `20` | Sayfa başına kayıt. En fazla `100`; daha büyük değerler `100`'e düşürülür |
+| `q` | string | — | Search term |
+| `categoryId` | int | — | Category filter |
+| `brandId` | int | — | Brand filter |
+| `status` | int | — | Status filter (`1` \| `2` \| `3`) |
+| `page` | int | `1` | Page number (starts at 1) |
+| `pageSize` | int | `20` | Number of records per page. Maximum `100`; larger values are reduced to `100` |
 | `sort` | string | `name` | `name` \| `price` \| `stock` \| `updatedAt` |
 | `dir` | string | `asc` | `asc` \| `desc` |
 
-Parametrelerin tümü isteğe bağlıdır ve birlikte kullanılabilir.
+All parameters are optional and can be combined.
 
-**Örnek istek**
+**Example Request**
 
-```
+```text
 GET /products?q=cola&categoryId=1&sort=price&dir=desc&page=1&pageSize=20
 Authorization: Bearer <accessToken>
 ```
 
-**Yanıt — `200 OK`**
+**Response — `200 OK`**
 
 ```json
 {
@@ -251,7 +256,7 @@ Authorization: Bearer <accessToken>
       "barcode": "8690637010011",
       "imageUrl": "https://picsum.photos/seed/1/400/400",
       "categoryId": 1,
-      "categoryName": "İçecek",
+      "categoryName": "Beverages",
       "brandId": 6,
       "brandName": "Coca-Cola",
       "price": 3950,
@@ -269,45 +274,45 @@ Authorization: Bearer <accessToken>
 }
 ```
 
-| Alan | Tip | Açıklama |
+| Field | Type | Description |
 | --- | --- | --- |
-| `items` | dizi | Geçerli sayfadaki ürünler |
-| `total` | int | Filtrelere uyan **toplam** kayıt sayısı (sayfalama öncesi) |
-| `page` | int | Geçerli sayfa |
-| `pageSize` | int | Sayfa başına kayıt sayısı |
+| `items` | array | Products on the current page |
+| `total` | int | **Total** number of records matching the filters, before pagination |
+| `page` | int | Current page |
+| `pageSize` | int | Number of records per page |
 
-**Ürün alanları**
+**Product Fields**
 
-| Alan | Tip | Açıklama |
+| Field | Type | Description |
 | --- | --- | --- |
 | `id` | int | |
-| `name` | string | Ürün adı |
-| `sku` | string | Stok kodu (benzersiz) |
-| `barcode` | string | Barkod |
-| `imageUrl` | string | Görsel adresi |
-| `categoryId` / `categoryName` | int / string | Kategori |
-| `brandId` / `brandName` | int / string | Marka |
-| `price` | int | Satış fiyatı — **KURUŞ** (`3950` = 39,50 ₺) |
-| `stock` | int | Mevcut stok |
-| `minStock` | int | Kritik stok eşiği |
-| `unit` | int | Birim (bkz. 1.4) |
-| `status` | int | Durum (bkz. 1.4) |
-| `isFeatured` | bool | Öne çıkan ürün mü |
-| `updatedAt` | string | Son güncelleme (UTC) |
+| `name` | string | Product name |
+| `sku` | string | SKU (unique) |
+| `barcode` | string | Barcode |
+| `imageUrl` | string | Image URL |
+| `categoryId` / `categoryName` | int / string | Category |
+| `brandId` / `brandName` | int / string | Brand |
+| `price` | int | Selling price — **KURUŞ** (`3950` = ₺39.50) |
+| `stock` | int | Current stock |
+| `minStock` | int | Critical stock threshold |
+| `unit` | int | Unit (see 1.4) |
+| `status` | int | Status (see 1.4) |
+| `isFeatured` | bool | Whether the product is featured |
+| `updatedAt` | string | Last update timestamp (UTC) |
 
 ---
 
 ### 4.2 `GET /products/{id}`
 
-Tek bir ürünün tüm alanlarını döner (düzenleme formu için gereken `costPrice`, `supplierId`, `description` dahil).
+Returns all fields of a single product, including `costPrice`, `supplierId`, and `description`, which are required for the edit form.
 
-**Path parametresi**
+**Path Parameter**
 
-| Parametre | Tip |
+| Parameter | Type |
 | --- | --- |
 | `id` | int |
 
-**Yanıt — `200 OK`**
+**Response — `200 OK`**
 
 ```json
 {
@@ -317,7 +322,7 @@ Tek bir ürünün tüm alanlarını döner (düzenleme formu için gereken `cost
   "barcode": "8690637010011",
   "imageUrl": "https://picsum.photos/seed/1/400/400",
   "categoryId": 1,
-  "categoryName": "İçecek",
+  "categoryName": "Beverages",
   "brandId": 6,
   "brandName": "Coca-Cola",
   "supplierId": 1,
@@ -327,33 +332,33 @@ Tek bir ürünün tüm alanlarını döner (düzenleme formu için gereken `cost
   "minStock": 40,
   "unit": 1,
   "status": 1,
-  "description": "500 ml cam şişe.",
+  "description": "500 ml glass bottle.",
   "isFeatured": true,
   "updatedAt": "2026-07-17T12:37:56.2270349Z"
 }
 ```
 
-4.1'deki ürün alanlarına ek olarak:
+In addition to the product fields listed in 4.1:
 
-| Alan | Tip | Açıklama |
+| Field | Type | Description |
 | --- | --- | --- |
-| `supplierId` | int | Tedarikçi |
-| `costPrice` | int | Maliyet fiyatı — **KURUŞ** |
-| `description` | string | Ürün açıklaması (yoksa boş string) |
+| `supplierId` | int | Supplier |
+| `costPrice` | int | Cost price — **KURUŞ** |
+| `description` | string | Product description (empty string if not provided) |
 
-**Hatalar**
+**Errors**
 
-| Kod | Durum |
+| Code | Condition |
 | --- | --- |
-| `404` | Ürün bulunamadı |
+| `404` | Product not found |
 
 ---
 
 ### 4.3 `GET /products/stats`
 
-Stok durumu özeti.
+Returns a summary of the current stock status.
 
-**Yanıt — `200 OK`**
+**Response — `200 OK`**
 
 ```json
 {
@@ -363,40 +368,40 @@ Stok durumu özeti.
 }
 ```
 
-| Alan | Açıklama |
+| Field | Description |
 | --- | --- |
-| `total` | Toplam ürün sayısı |
-| `outOfStock` | Stoğu tükenmiş ürün sayısı (`stock == 0`) |
-| `lowStock` | Kritik eşiğe inmiş ürün sayısı (`stock <= minStock` ve `stock > 0`) |
+| `total` | Total number of products |
+| `outOfStock` | Number of products with no stock (`stock == 0`) |
+| `lowStock` | Number of products at or below the critical threshold (`stock <= minStock` and `stock > 0`) |
 
 ---
 
 ### 4.4 `POST /products`
 
-Yeni ürün oluşturur.
+Creates a new product.
 
-**İstek gövdesi**
+**Request Body**
 
-| Alan | Tip | Zorunlu | Açıklama |
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `name` | string | evet | |
-| `sku` | string | evet | Benzersiz olmalı |
-| `barcode` | string | hayır | |
-| `categoryId` | int | evet | Var olan bir kategori |
-| `brandId` | int | evet | Var olan bir marka |
-| `supplierId` | int | evet | Var olan bir tedarikçi |
-| `price` | int | evet | **KURUŞ**, negatif olamaz |
-| `costPrice` | int | evet | **KURUŞ**, negatif olamaz |
-| `stock` | int | evet | Negatif olamaz |
-| `minStock` | int | evet | Negatif olamaz |
-| `unit` | int | evet | `1` \| `2` \| `3` \| `4` |
-| `status` | int | evet | `1` \| `2` \| `3` |
-| `description` | string | hayır | |
-| `isFeatured` | bool | hayır | Varsayılan `false` |
+| `name` | string | Yes | |
+| `sku` | string | Yes | Must be unique |
+| `barcode` | string | No | |
+| `categoryId` | int | Yes | Must reference an existing category |
+| `brandId` | int | Yes | Must reference an existing brand |
+| `supplierId` | int | Yes | Must reference an existing supplier |
+| `price` | int | Yes | **KURUŞ**, cannot be negative |
+| `costPrice` | int | Yes | **KURUŞ**, cannot be negative |
+| `stock` | int | Yes | Cannot be negative |
+| `minStock` | int | Yes | Cannot be negative |
+| `unit` | int | Yes | `1` \| `2` \| `3` \| `4` |
+| `status` | int | Yes | `1` \| `2` \| `3` |
+| `description` | string | No | |
+| `isFeatured` | bool | No | Defaults to `false` |
 
 ```json
 {
-  "name": "Ülker Çikolatalı Gofret 36 g",
+  "name": "Ülker Chocolate Wafer 36 g",
   "sku": "ATI-2001",
   "barcode": "8690504019999",
   "categoryId": 5,
@@ -408,25 +413,26 @@ Yeni ürün oluşturur.
   "minStock": 30,
   "unit": 1,
   "status": 1,
-  "description": "Fındık parçacıklı çikolatalı gofret.",
+  "description": "Chocolate wafer with hazelnut pieces.",
   "isFeatured": false
 }
 ```
 
-**Yanıt — `201 Created`**
+**Response — `201 Created`**
 
-Oluşturulan ürün, `GET /products` içindeki ürün alanlarıyla aynı biçimde döner.
-`imageUrl` sunucu tarafında otomatik atanır.
+Returns the created product in the same format as the product fields in `GET /products`.
+
+`imageUrl` is automatically assigned by the server.
 
 ```json
 {
   "id": 81,
-  "name": "Ülker Çikolatalı Gofret 36 g",
+  "name": "Ülker Chocolate Wafer 36 g",
   "sku": "ATI-2001",
   "barcode": "8690504019999",
   "imageUrl": "https://picsum.photos/seed/81/400/400",
   "categoryId": 5,
-  "categoryName": "Atıştırmalık",
+  "categoryName": "Snacks",
   "brandId": 1,
   "brandName": "Ülker",
   "price": 1999,
@@ -439,28 +445,28 @@ Oluşturulan ürün, `GET /products` içindeki ürün alanlarıyla aynı biçimd
 }
 ```
 
-**Hatalar**
+**Errors**
 
-| Kod | Durum |
+| Code | Condition |
 | --- | --- |
-| `400` | Zorunlu alan boş, negatif tutar/stok, geçersiz enum, ya da `categoryId`/`brandId`/`supplierId` bulunamadı |
-| `409` | `sku` başka bir üründe kullanılıyor |
+| `400` | Required field is empty, amount/stock is negative, enum is invalid, or `categoryId`/`brandId`/`supplierId` does not exist |
+| `409` | `sku` is already used by another product |
 
 ---
 
 ### 4.5 `PUT /products/{id}`
 
-Ürünün **tüm** alanlarını günceller. Gövde `POST /products` ile aynıdır — değiştirmediğiniz alanları da mevcut değerleriyle göndermeniz gerekir.
+Updates **all** fields of a product. The request body is the same as `POST /products` — unchanged fields must also be sent with their current values.
 
-`updatedAt` sunucu tarafında otomatik tazelenir.
+`updatedAt` is automatically refreshed by the server.
 
-**Path parametresi**
+**Path Parameter**
 
-| Parametre | Tip |
+| Parameter | Type |
 | --- | --- |
 | `id` | int |
 
-**İstek gövdesi**
+**Request Body**
 
 ```json
 {
@@ -476,34 +482,34 @@ Oluşturulan ürün, `GET /products` içindeki ürün alanlarıyla aynı biçimd
   "minStock": 40,
   "unit": 1,
   "status": 1,
-  "description": "Güncellenmiş açıklama.",
+  "description": "Updated description.",
   "isFeatured": true
 }
 ```
 
-**Yanıt — `200 OK`**
+**Response — `200 OK`**
 
-Güncellenmiş ürün (4.1'deki ürün alanlarıyla aynı biçim).
+Returns the updated product in the same format as the product fields in 4.1.
 
-**Hatalar**
+**Errors**
 
-| Kod | Durum |
+| Code | Condition |
 | --- | --- |
-| `400` | Geçersiz alan (bkz. 4.4) |
-| `404` | Ürün bulunamadı |
-| `409` | `sku` başka bir üründe kullanılıyor |
+| `400` | Invalid field (see 4.4) |
+| `404` | Product not found |
+| `409` | `sku` is already used by another product |
 
 ---
 
 ### 4.6 `PATCH /products/{id}/stock`
 
-Yalnızca stok miktarını günceller. `updatedAt` otomatik tazelenir.
+Updates only the stock quantity. `updatedAt` is automatically refreshed.
 
-**İstek gövdesi**
+**Request Body**
 
-| Alan | Tip | Açıklama |
+| Field | Type | Description |
 | --- | --- | --- |
-| `stock` | int | Yeni stok değeri. Negatif olamaz |
+| `stock` | int | New stock value. Cannot be negative |
 
 ```json
 {
@@ -511,55 +517,59 @@ Yalnızca stok miktarını günceller. `updatedAt` otomatik tazelenir.
 }
 ```
 
-**Yanıt — `200 OK`**
+**Response — `200 OK`**
 
-Güncellenmiş ürün (4.1'deki ürün alanlarıyla aynı biçim).
+Returns the updated product in the same format as the product fields in 4.1.
 
-**Hatalar**
+**Errors**
 
-| Kod | Durum |
+| Code | Condition |
 | --- | --- |
-| `400` | `stock` negatif |
-| `404` | Ürün bulunamadı |
+| `400` | `stock` is negative |
+| `404` | Product not found |
 
 ---
 
 ### 4.7 `DELETE /products/{id}`
 
-Ürünü siler.
+Deletes a product.
 
-**Yanıt — `204 No Content`** (gövde yok)
+**Response — `204 No Content`**
 
-**Hatalar**
+No response body.
 
-| Kod | Durum |
+**Errors**
+
+| Code | Condition |
 | --- | --- |
-| `404` | Ürün bulunamadı |
+| `404` | Product not found |
 
 ---
 
-## 5. Listeler
+## 5. Lookup Lists
 
-Ürün formlarında ve filtrelerde kullanılan sabit listeler.
+Static lists used by product forms and filters.
 
 ### 5.1 `GET /categories`
 
-**Yanıt — `200 OK`**
+**Response — `200 OK`**
 
 ```json
 [
-  { "id": 1, "name": "İçecek", "slug": "icecek", "sortOrder": 1 },
-  { "id": 2, "name": "Kahvaltılık", "slug": "kahvaltilik", "sortOrder": 2 }
+  { "id": 1, "name": "Beverages", "slug": "icecek", "sortOrder": 1 },
+  { "id": 2, "name": "Breakfast", "slug": "kahvaltilik", "sortOrder": 2 }
 ]
 ```
 
-Kategoriler `sortOrder` alanına göre sıralı döner. Toplam 8 kategori vardır.
+Categories are returned sorted by `sortOrder`.
+
+There are 8 categories in total.
 
 ---
 
 ### 5.2 `GET /brands`
 
-**Yanıt — `200 OK`**
+**Response — `200 OK`**
 
 ```json
 [
@@ -568,13 +578,15 @@ Kategoriler `sortOrder` alanına göre sıralı döner. Toplam 8 kategori vardı
 ]
 ```
 
-Markalar ada göre sıralı döner. Toplam 12 marka vardır.
+Brands are returned sorted alphabetically by name.
+
+There are 12 brands in total.
 
 ---
 
 ### 5.3 `GET /suppliers`
 
-**Yanıt — `200 OK`**
+**Response — `200 OK`**
 
 ```json
 [
@@ -584,9 +596,11 @@ Markalar ada göre sıralı döner. Toplam 12 marka vardır.
     "contactName": "Mehmet Yılmaz",
     "phone": "0212 555 1010",
     "email": "siparis@anadolugida.com.tr",
-    "city": "İstanbul"
+    "city": "Istanbul"
   }
 ]
 ```
 
-Tedarikçiler ada göre sıralı döner. Toplam 6 tedarikçi vardır.
+Suppliers are returned sorted alphabetically by name.
+
+There are 6 suppliers in total.

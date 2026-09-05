@@ -11,36 +11,36 @@ const string corsPolicyName = "StokMateCors";
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Port sabit: 5080. Tüm ağ arayüzleri (0.0.0.0) dinlenir; böylece API'ye hem
-// localhost'tan hem de emülatör/fiziksel cihazdan makinenin yerel IP'si ile erişilebilir.
+// Fixed port: 5080. Listens on all network interfaces (0.0.0.0), allowing the API to be accessed
+// from both localhost and emulators/physical devices using the machine's local IP address.
 builder.WebHost.UseUrls("http://0.0.0.0:5080");
 
-// Bellek içi veritabanı: kurulum gerektirmez, uygulama kapanınca veriler silinir.
+// In-memory database: requires no setup; data is lost when the application shuts down.
 builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("StokMate"));
 
-// Erişim anahtarları süreç belleğinde tutulur; bu yüzden tek örnek olmalı.
+// Access tokens are kept in process memory, so there should be only one instance.
 builder.Services.AddSingleton<TokenService>();
 
-// Servisler arayüzsüz, somut sınıf olarak kaydedilir.
+// Services are registered as concrete classes without interfaces.
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<LookupService>();
 
 builder.Services.AddControllers();
 
-// Model bağlama hataları da düz metin dönsün. AddControllers()'tan SONRA gelmeli ki
-// varsayılan ProblemDetails (JSON) üreticisinin üzerine yazsın.
+// Model binding errors are also returned as plain text. This must come AFTER AddControllers()
+// so that it overrides the default ProblemDetails (JSON) producer.
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = _ => new ContentResult
     {
         StatusCode = StatusCodes.Status400BadRequest,
         ContentType = "text/plain; charset=utf-8",
-        Content = "İstek geçersiz veya eksik alan içeriyor."
+        Content = "The request is invalid or contains missing fields."
     };
 });
 
-// Web ve mobil istemcilerin sorunsuz bağlanabilmesi için CORS tamamen serbest.
+// CORS is fully open so that web and mobile clients can connect without issues.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(corsPolicyName, policy => policy
@@ -56,17 +56,17 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "StokMate API",
         Version = "v1",
-        Description = "Stok yönetimi case study API'si. Fiyat alanları KURUŞ cinsindendir (1999 = 19,99 TL)."
+        Description = "Inventory management case study API. Price fields are expressed in KURUŞ (1999 = 19.99 TRY)."
     });
 
-    // Swagger arayüzündeki "Authorize" düğmesi için opak Bearer anahtarı tanımı.
+    // Opaque Bearer token definition for the "Authorize" button in the Swagger UI.
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
         In = ParameterLocation.Header,
-        Description = "/auth/login yanıtındaki accessToken değerini girin."
+        Description = "Enter the accessToken value from the /auth/login response."
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -80,7 +80,7 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // Controller'lardaki XML özet yorumları Swagger'da açıklama olarak görünür.
+    // XML summary comments in controllers are displayed as descriptions in Swagger.
     var xmlPath = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
     if (File.Exists(xmlPath))
     {
@@ -90,13 +90,13 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Örnek veriler uygulama açılışında yüklenir.
+// Sample data is loaded when the application starts.
 using (var scope = app.Services.CreateScope())
 {
     DbSeeder.Seed(scope.ServiceProvider.GetRequiredService<AppDbContext>());
 }
 
-// En dışta: alttaki tüm hataları düz metin yanıta çevirir.
+// Outer layer: converts all errors below into plain-text responses.
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseSwagger();

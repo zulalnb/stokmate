@@ -1,9 +1,9 @@
 namespace StokMate.Api.Common;
 
 /// <summary>
-/// Boru hattındaki tüm hataları yakalar ve düz metin (text/plain) yanıta çevirir.
-/// Bilinen hata tipleri kendi durum kodlarını alır; beklenmeyen hatalarda istemciye
-/// iç detay sızdırılmaz, ayrıntı yalnızca sunucu günlüğüne yazılır.
+/// Catches all errors in the pipeline and converts them into plain-text (text/plain) responses.
+/// Known error types receive their respective status codes; for unexpected errors, internal
+/// details are not exposed to the client and the details are written only to the server log.
 /// </summary>
 public class ExceptionMiddleware
 {
@@ -28,17 +28,22 @@ public class ExceptionMiddleware
 
             if (statusCode == StatusCodes.Status500InternalServerError)
             {
-                _logger.LogError(ex, "Beklenmeyen hata: {Method} {Path}", context.Request.Method, context.Request.Path);
+                // Log unexpected errors with their full exception details on the server.
+                _logger.LogError(
+                    ex,
+                    "Unexpected error: {Method} {Path}",
+                    context.Request.Method,
+                    context.Request.Path);
             }
 
-            // Yanıt gövdesi akmaya başladıysa durum kodu/gövde artık değiştirilemez.
+            // If the response body has already started, the status code/body can no longer be changed.
             if (context.Response.HasStarted)
             {
                 throw;
             }
 
-            // Response.Clear() bilinçli olarak çağrılmaz: CORS middleware'inin eklediği
-            // başlıkları silerdi ve tarayıcı hata yanıtını istemciye hiç ulaştıramazdı.
+            // Response.Clear() is intentionally not called: it would remove headers added by the CORS
+            // middleware and prevent the browser from delivering the error response to the client.
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "text/plain; charset=utf-8";
             context.Response.ContentLength = null;
@@ -47,13 +52,13 @@ public class ExceptionMiddleware
         }
     }
 
-    /// <summary>Hata tipini HTTP durum kodu ve istemciye gösterilecek mesaja eşler.</summary>
+    /// <summary>Maps an exception type to an HTTP status code and a message shown to the client.</summary>
     private static (int StatusCode, string Message) Map(Exception ex) => ex switch
     {
         NotFoundException => (StatusCodes.Status404NotFound, ex.Message),
         ValidationException => (StatusCodes.Status400BadRequest, ex.Message),
         UnauthorizedException => (StatusCodes.Status401Unauthorized, ex.Message),
         ConflictException => (StatusCodes.Status409Conflict, ex.Message),
-        _ => (StatusCodes.Status500InternalServerError, "Beklenmeyen bir hata oluştu.")
+        _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
     };
 }

@@ -16,17 +16,17 @@ public class LookupsController : ControllerBase
         _lookupService = lookupService;
     }
 
-    /// <summary>Kategori listesi.</summary>
+    /// <summary>Returns the list of categories.</summary>
     [HttpGet("categories")]
     public async Task<ActionResult<List<CategoryDto>>> GetCategories()
         => await _lookupService.GetCategoriesAsync();
 
-    /// <summary>Marka listesi.</summary>
+    /// <summary>Returns the list of brands.</summary>
     [HttpGet("brands")]
     public async Task<ActionResult<List<BrandDto>>> GetBrands()
         => await _lookupService.GetBrandsAsync();
 
-    /// <summary>Tedarikçi listesi.</summary>
+    /// <summary>Returns the list of suppliers.</summary>
     [HttpGet("suppliers")]
     public async Task<ActionResult<List<SupplierDto>>> GetSuppliers()
         => await _lookupService.GetSuppliersAsync();

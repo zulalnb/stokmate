@@ -1,6 +1,6 @@
 namespace StokMate.Api.Common;
 
-/// <summary>İstenen kayıt bulunamadı. ExceptionMiddleware tarafından 404'e çevrilir.</summary>
+/// <summary>The requested record was not found. Converted to 404 by ExceptionMiddleware.</summary>
 public class NotFoundException : Exception
 {
     public NotFoundException(string message) : base(message)
@@ -8,7 +8,7 @@ public class NotFoundException : Exception
     }
 }
 
-/// <summary>İstek geçersiz veri içeriyor. ExceptionMiddleware tarafından 400'e çevrilir.</summary>
+/// <summary>The request contains invalid data. Converted to 400 by ExceptionMiddleware.</summary>
 public class ValidationException : Exception
 {
     public ValidationException(string message) : base(message)
@@ -16,7 +16,7 @@ public class ValidationException : Exception
     }
 }
 
-/// <summary>Kimlik doğrulama başarısız. ExceptionMiddleware tarafından 401'e çevrilir.</summary>
+/// <summary>Authentication failed. Converted to 401 by ExceptionMiddleware.</summary>
 public class UnauthorizedException : Exception
 {
     public UnauthorizedException(string message) : base(message)
@@ -24,7 +24,7 @@ public class UnauthorizedException : Exception
     }
 }
 
-/// <summary>Kayıt mevcut bir veriyle çakışıyor. ExceptionMiddleware tarafından 409'a çevrilir.</summary>
+/// <summary>The record conflicts with existing data. Converted to 409 by ExceptionMiddleware.</summary>
 public class ConflictException : Exception
 {
     public ConflictException(string message) : base(message)
