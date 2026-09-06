@@ -20,9 +20,9 @@ React Native is sensitive to workspace hoisting due to Metro bundler; configurin
 
 ## Documentation separation
 
-**Selected:** The root `AGENTS.md` contains repository-wide rules; each project has its own `AGENTS.md` for project rules; root `docs/DECISIONS.md` records shared rationales; project `docs/DECISIONS.md` files record project-specific rationales; `.specs/` contains feature plans.
+**Selected:** The root `AGENTS.md` contains repository-wide rules; each project has its own `AGENTS.md` for project rules; root `docs/DECISIONS.md` records shared rationales; project `docs/DECISIONS.md` files record project-specific rationales.
 **Rejected:** A single large document or a separate repository-wide `ARCHITECTURE.md`
 
-The separation is based on scope and time: repository rules apply everywhere, project rules apply within one project, setup is done once, decisions were made in the past, and specs apply to current work. Keeping setup details out of `AGENTS.md` preserves its signal.
+The separation is based on scope and time: repository rules apply everywhere, project rules apply within one project, setup is done once, and decisions were made in the past. Keeping setup details out of `AGENTS.md` preserves its signal.
 
 **Cost:** Each time, the correct document must be chosen; if boundaries become unclear, documents can diverge.

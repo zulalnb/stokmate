@@ -1,6 +1,6 @@
 # Roadmap
 
-Planned progress for the `web/` project. See `INSTALLATION.md` for setup details, `AGENTS.md` for rules, `docs/DECISIONS.md` for decision rationales, and the `.specs/` folder for feature-based planning.
+Planned progress for the `web/` project. See `INSTALLATION.md` for setup details, `AGENTS.md` for rules, and `docs/DECISIONS.md` for decision rationales.
 
 ---
 

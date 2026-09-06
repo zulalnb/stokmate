@@ -27,13 +27,11 @@ Shared working rules are defined in the repository-level `AGENTS.md`.
 
 Before writing code, review the documentation relevant to the task. Priority order:
 
-1. `.specs/README.md`
-2. Relevant `.specs/` document
-3. `api/API.md`
-4. Rules in this file
-5. `INSTALLATION.md` (only for installation and tool configuration)
+1. `api/API.md`
+2. Rules in this file
+3. `INSTALLATION.md` (only for installation and tool configuration)
 
-The spec takes precedence over the code. Do not make assumptions about API behavior.
+Do not make assumptions about API behavior.
 
 Decision rationales are documented in `docs/DECISIONS.md`. When making a new architectural or library decision, add a short heading there: selected approach, rejected alternative, rationale, and trade-off.
 
@@ -539,7 +537,6 @@ If the task affects only a specific file, do not make broad changes.
 - Installation and tool configuration: `INSTALLATION.md`
 - API contract: `api/API.md`
 - Decision rationales: `docs/DECISIONS.md`
-- Feature requirements: the relevant spec under `.specs/`
 - Architecture rules: this file (§ Architecture)
 
 ## ROADMAP.md
@@ -552,7 +549,7 @@ Before starting any web task:
 2. Check whether the requested task already exists.
 3. If it is already marked as completed, verify the implementation before making changes.
 4. If the task exists and is incomplete, implement it and mark it as completed after verification.
-5. If the task does not exist, add it to the appropriate section only if it is explicitly requested or required by the current specification.
+5. If the task does not exist, add it to the appropriate section only if it is explicitly requested.
 6. Never mark a task as completed based only on the user's request. Verify the actual implementation first.
 7. Do not add speculative or future work to the roadmap.
 8. Keep `ROADMAP.md` updated when completing requested work.
