@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
-import { toast } from 'sonner'
 
 import { ApiError } from '@/api/errors'
 import {
@@ -15,6 +14,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { toast } from '@/components/ui/toast'
 import { useDeleteProduct } from '@/features/products/hooks/use-products'
 
 export function DeleteProductDialog({
@@ -55,11 +55,14 @@ export function DeleteProductDialog({
               deleteMutation.mutate(productId, {
                 onSuccess: () => {
                   setOpen(false)
-                  toast.success('Ürün silindi.')
+                  toast.add({ title: 'Ürün silindi.', type: 'success' })
                   onDeleted?.()
                 },
                 onError: (error) => {
-                  toast.error(error instanceof ApiError ? error.message : 'Ürün silinemedi.')
+                  toast.add({
+                    title: error instanceof ApiError ? error.message : 'Ürün silinemedi.',
+                    type: 'error',
+                  })
                 },
               })
             }}

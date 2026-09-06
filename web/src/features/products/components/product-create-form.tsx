@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
-import { toast } from 'sonner'
 
 import { ApiError } from '@/api/errors'
+import { toast } from '@/components/ui/toast'
 import { ProductForm, type ProductFormValues } from '@/features/products/components/product-form'
 import { useCreateProduct } from '@/features/products/hooks/use-products'
 
@@ -39,7 +39,7 @@ export function ProductCreateForm() {
       onSubmit={(payload) => {
         createMutation.mutate(payload, {
           onSuccess: (product) => {
-            toast.success('Ürün oluşturuldu.')
+            toast.add({ title: 'Ürün oluşturuldu.', type: 'success' })
             navigate({ to: '/products/$id', params: { id: String(product.id) } })
           },
         })

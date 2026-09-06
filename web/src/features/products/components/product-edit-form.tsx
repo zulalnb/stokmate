@@ -1,6 +1,5 @@
-import { toast } from 'sonner'
-
 import { ApiError } from '@/api/errors'
+import { toast } from '@/components/ui/toast'
 import { ProductForm } from '@/features/products/components/product-form'
 import { useUpdateProduct } from '@/features/products/hooks/use-products'
 import type { ProductDetail } from '@/lib/types'
@@ -43,7 +42,7 @@ export function ProductEditForm({ product }: { product: ProductDetail }) {
       }}
       onSubmit={(payload) => {
         updateMutation.mutate(payload, {
-          onSuccess: () => toast.success('Ürün güncellendi.'),
+          onSuccess: () => toast.add({ title: 'Ürün güncellendi.', type: 'success' }),
         })
       }}
     />

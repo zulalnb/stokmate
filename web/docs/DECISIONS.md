@@ -110,6 +110,17 @@ Components are copied into the repo, so there's no library dependency or theme o
 
 ---
 
+## Toast notifications: shadcn's Base UI `toast` component
+
+**Selected:** shadcn's `toast` component (`@/components/ui/toast`, built on `@base-ui/react/toast`)
+**Rejected:** `sonner`
+
+The project's shadcn setup is Base UI-based, and shadcn's own guidance is to use its native `toast` primitive for Base UI projects — `sonner` is meant for Radix and React Aria projects. Using the Base UI-native component keeps toasts visually and structurally consistent with the rest of the design system (same `cn`/`Button` conventions) instead of pulling in a separately styled, independent library.
+
+**Cost:** The API is `toast.add({ title, type })` rather than `sonner`'s `toast.success(msg)` / `toast.error(msg)` shorthands, so call sites are slightly more verbose.
+
+---
+
 ## Feature-based folder structure
 
 **Selected:** `src/features/<feature>/{components,hooks}` + `src/api/services/`

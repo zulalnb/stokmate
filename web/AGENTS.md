@@ -491,7 +491,7 @@ Forms are built with `react-hook-form` + `zod`. Do not invent validation rules i
 
 ## Notifications
 
-Notifications are handled in the UI layer. `sonner` may be used at the component or feature level; do not use it in API services, Axios interceptors, or the route guard.
+Notifications are handled in the UI layer. The shadcn `toast` component (`@/components/ui/toast`) may be used at the component or feature level; do not use it in API services, Axios interceptors, or the route guard.
 
 ---
 
