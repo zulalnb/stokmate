@@ -1,7 +1,6 @@
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Controller, useForm } from 'react-hook-form'
-import { z } from 'zod'
+import type { ChangeEvent } from 'react'
+import { Controller, useFormContext } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -14,6 +13,7 @@ import {
   FieldTitle,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { MoneyInput } from '@/features/products/components/money-input'
 import {
   Select,
   SelectContent,
@@ -23,54 +23,43 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  buildProductPayload,
+  type ProductFormValues,
+} from '@/features/products/components/product-form.schema'
 import { brandsQuery } from '@/features/products/hooks/use-brands'
 import { categoriesQuery } from '@/features/products/hooks/use-categories'
 import { suppliersQuery } from '@/features/products/hooks/use-suppliers'
 import { STATUS_LABELS, UNIT_LABELS } from '@/lib/enums'
-import { parseKurus } from '@/lib/money'
 import type { UpdateProductPayload } from '@/lib/types'
 
-const productFormSchema = z.object({
-  name: z.string().min(1, 'Ürün adı gerekli.'),
-  sku: z.string().min(1, 'Stok kodu gerekli.'),
-  barcode: z.string(),
-  categoryId: z.string().min(1, 'Kategori seçin.'),
-  brandId: z.string().min(1, 'Marka seçin.'),
-  supplierId: z.string().min(1, 'Tedarikçi seçin.'),
-  price: z.string().min(1, 'Fiyat gerekli.'),
-  costPrice: z.string().min(1, 'Maliyet fiyatı gerekli.'),
-  stock: z
-    .string()
-    .min(1, 'Stok gerekli.')
-    .refine((val) => Number(val) >= 0, 'Stok negatif olamaz.'),
-  minStock: z
-    .string()
-    .min(1, 'Kritik stok gerekli.')
-    .refine((val) => Number(val) >= 0, 'Kritik stok negatif olamaz.'),
-  unit: z.string().min(1, 'Birim seçin.'),
-  status: z.string().min(1, 'Durum seçin.'),
-  description: z.string(),
-  isFeatured: z.boolean(),
-})
+function toDigitsOnly(value: string): string {
+  return value.replace(/\D/g, '')
+}
 
-export type ProductFormValues = z.infer<typeof productFormSchema>
+function replaceLoneZero(e: ChangeEvent<HTMLInputElement>, previousValue: string): string {
+  const nativeEvent = e.nativeEvent as InputEvent
+  if (
+    previousValue === '0' &&
+    nativeEvent.inputType === 'insertText' &&
+    nativeEvent.data !== null &&
+    /^[1-9]$/.test(nativeEvent.data)
+  ) {
+    return nativeEvent.data
+  }
+  return toDigitsOnly(e.target.value)
+}
 
 export function ProductForm({
-  defaultValues,
   onSubmit,
   isSubmitting,
-  apiErrorMessage,
   submitLabel,
   submittingLabel,
-  requireDirty = false,
 }: {
-  defaultValues: ProductFormValues
   onSubmit: (payload: UpdateProductPayload) => void
   isSubmitting: boolean
-  apiErrorMessage?: string
   submitLabel: string
   submittingLabel: string
-  requireDirty?: boolean
 }) {
   const { data: categories } = useSuspenseQuery(categoriesQuery())
   const { data: brands } = useSuspenseQuery(brandsQuery())
@@ -80,31 +69,18 @@ export function ProductForm({
     register,
     control,
     handleSubmit,
+    clearErrors,
+    getValues,
     formState: { errors, isDirty },
-  } = useForm<ProductFormValues>({
-    resolver: zodResolver(productFormSchema),
-    defaultValues,
-  })
+  } = useFormContext<ProductFormValues>()
+
+  const stockField = register('stock')
+  const minStockField = register('minStock')
 
   function handleFormSubmit(values: ProductFormValues) {
-    const payload: UpdateProductPayload = {
-      name: values.name,
-      sku: values.sku,
-      barcode: values.barcode || undefined,
-      categoryId: Number(values.categoryId),
-      brandId: Number(values.brandId),
-      supplierId: Number(values.supplierId),
-      price: parseKurus(values.price),
-      costPrice: parseKurus(values.costPrice),
-      stock: Number(values.stock),
-      minStock: Number(values.minStock),
-      unit: Number(values.unit) as 1 | 2 | 3 | 4,
-      status: Number(values.status) as 1 | 2 | 3,
-      description: values.description || undefined,
-      isFeatured: values.isFeatured,
-    }
-
-    onSubmit(payload)
+    clearErrors('sku')
+    clearErrors('root')
+    onSubmit(buildProductPayload(values))
   }
 
   return (
@@ -149,7 +125,12 @@ export function ProductForm({
                       label: category.name,
                     }))}
                   >
-                    <SelectTrigger id="categoryId" aria-invalid={!!errors.categoryId} className="w-full">
+                    <SelectTrigger
+                      id="categoryId"
+                      ref={field.ref}
+                      aria-invalid={!!errors.categoryId}
+                      className="w-full"
+                    >
                       <SelectValue placeholder="Kategori seçin" />
                     </SelectTrigger>
                     <SelectContent>
@@ -180,7 +161,12 @@ export function ProductForm({
                     onValueChange={field.onChange}
                     items={brands.map((brand) => ({ value: String(brand.id), label: brand.name }))}
                   >
-                    <SelectTrigger id="brandId" aria-invalid={!!errors.brandId} className="w-full">
+                    <SelectTrigger
+                      id="brandId"
+                      ref={field.ref}
+                      aria-invalid={!!errors.brandId}
+                      className="w-full"
+                    >
                       <SelectValue placeholder="Marka seçin" />
                     </SelectTrigger>
                     <SelectContent>
@@ -214,7 +200,12 @@ export function ProductForm({
                       label: supplier.name,
                     }))}
                   >
-                    <SelectTrigger id="supplierId" aria-invalid={!!errors.supplierId} className="w-full">
+                    <SelectTrigger
+                      id="supplierId"
+                      ref={field.ref}
+                      aria-invalid={!!errors.supplierId}
+                      className="w-full"
+                    >
                       <SelectValue placeholder="Tedarikçi seçin" />
                     </SelectTrigger>
                     <SelectContent>
@@ -236,7 +227,13 @@ export function ProductForm({
           <Field data-invalid={!!errors.price}>
             <FieldLabel htmlFor="price">Satış fiyatı (₺)</FieldLabel>
             <FieldContent>
-              <Input id="price" inputMode="decimal" aria-invalid={!!errors.price} {...register('price')} />
+              <Controller
+                control={control}
+                name="price"
+                render={({ field }) => (
+                  <MoneyInput id="price" aria-invalid={!!errors.price} {...field} />
+                )}
+              />
               <FieldError errors={[errors.price]} />
             </FieldContent>
           </Field>
@@ -244,11 +241,12 @@ export function ProductForm({
           <Field data-invalid={!!errors.costPrice}>
             <FieldLabel htmlFor="costPrice">Maliyet fiyatı (₺)</FieldLabel>
             <FieldContent>
-              <Input
-                id="costPrice"
-                inputMode="decimal"
-                aria-invalid={!!errors.costPrice}
-                {...register('costPrice')}
+              <Controller
+                control={control}
+                name="costPrice"
+                render={({ field }) => (
+                  <MoneyInput id="costPrice" aria-invalid={!!errors.costPrice} {...field} />
+                )}
               />
               <FieldError errors={[errors.costPrice]} />
             </FieldContent>
@@ -257,7 +255,17 @@ export function ProductForm({
           <Field data-invalid={!!errors.stock}>
             <FieldLabel htmlFor="stock">Stok</FieldLabel>
             <FieldContent>
-              <Input id="stock" type="number" aria-invalid={!!errors.stock} {...register('stock')} />
+              <Input
+                id="stock"
+                type="text"
+                inputMode="numeric"
+                aria-invalid={!!errors.stock}
+                {...stockField}
+                onChange={(e) => {
+                  e.target.value = replaceLoneZero(e, getValues('stock'))
+                  stockField.onChange(e)
+                }}
+              />
               <FieldError errors={[errors.stock]} />
             </FieldContent>
           </Field>
@@ -267,9 +275,14 @@ export function ProductForm({
             <FieldContent>
               <Input
                 id="minStock"
-                type="number"
+                type="text"
+                inputMode="numeric"
                 aria-invalid={!!errors.minStock}
-                {...register('minStock')}
+                {...minStockField}
+                onChange={(e) => {
+                  e.target.value = replaceLoneZero(e, getValues('minStock'))
+                  minStockField.onChange(e)
+                }}
               />
               <FieldError errors={[errors.minStock]} />
             </FieldContent>
@@ -287,7 +300,12 @@ export function ProductForm({
                     onValueChange={field.onChange}
                     items={Object.entries(UNIT_LABELS).map(([value, label]) => ({ value, label }))}
                   >
-                    <SelectTrigger id="unit" aria-invalid={!!errors.unit} className="w-full">
+                    <SelectTrigger
+                      id="unit"
+                      ref={field.ref}
+                      aria-invalid={!!errors.unit}
+                      className="w-full"
+                    >
                       <SelectValue placeholder="Birim seçin" />
                     </SelectTrigger>
                     <SelectContent>
@@ -316,9 +334,17 @@ export function ProductForm({
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
-                    items={Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }))}
+                    items={Object.entries(STATUS_LABELS).map(([value, label]) => ({
+                      value,
+                      label,
+                    }))}
                   >
-                    <SelectTrigger id="status" aria-invalid={!!errors.status} className="w-full">
+                    <SelectTrigger
+                      id="status"
+                      ref={field.ref}
+                      aria-invalid={!!errors.status}
+                      className="w-full"
+                    >
                       <SelectValue placeholder="Durum seçin" />
                     </SelectTrigger>
                     <SelectContent>
@@ -353,6 +379,7 @@ export function ProductForm({
               <Field orientation="horizontal">
                 <Checkbox
                   id="isFeatured"
+                  ref={field.ref}
                   checked={field.value}
                   onCheckedChange={field.onChange}
                 />
@@ -364,13 +391,13 @@ export function ProductForm({
           )}
         />
 
-        {apiErrorMessage && (
-          <p role="alert" className="text-sm text-destructive">
-            {apiErrorMessage}
+        {errors.root?.message && (
+          <p role="alert" className="text-destructive text-sm">
+            {errors.root.message}
           </p>
         )}
 
-        <Button type="submit" disabled={isSubmitting || (requireDirty && !isDirty)}>
+        <Button type="submit" disabled={isSubmitting || !isDirty}>
           {isSubmitting ? submittingLabel : submitLabel}
         </Button>
       </FieldGroup>

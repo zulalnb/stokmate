@@ -13,3 +13,10 @@ export function parseKurus(input: string): number {
   const amount = Number.parseFloat(normalized)
   return Math.round((Number.isFinite(amount) ? amount : 0) * 100)
 }
+
+export function formatKurusInput(kurus: number): string {
+  return (kurus / 100).toLocaleString('tr-TR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}

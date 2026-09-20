@@ -178,6 +178,17 @@ The polling setting, due to the § `queryOptions` factory requirement, lives ins
 
 ---
 
+## Price/cost input: manual keyboard + paste masking
+
+**Selected:** `MoneyInput` (`features/products/components/money-input.tsx`) — a fully controlled input using digit arithmetic in `onKeyDown` (shifting kuruş digits from right to left) and full-value normalization through the existing `parseKurus` in `onPaste`, without native `type="number"` or a library.
+**Rejected:** A third-party input-mask library (e.g. `react-number-format`); the native `onChange` approach of “extract digits from the typed text” (it conflicts with `parseKurus` semantics for paste: pasting plain `"1234"` produces `12,34` with digit shifting, while `parseKurus` produces `1.234,00`).
+
+Because the user experience is highly specific and relies on the existing `parseKurus`/`formatKurusInput` contract, a small, dependency-free component of roughly 60 lines was preferred over integrating a ready-made library with different formatting/parsing assumptions.
+
+**Cost:** Edge cases—caret position, paste normalization, and select-all on focus—must be manually tested and maintained; it does not benefit from the broad usage and test coverage provided by an established library.
+
+---
+
 ## Open — not decided
 
 **Row click:** Should the entire product row go to details, or should there be a separate action column? This should be decided before starting the detail route.
