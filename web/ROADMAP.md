@@ -26,7 +26,7 @@ Details: `INSTALLATION.md`.
 **HTTP infrastructure**
 
 - [x] `src/api/axios-client.ts` — single Axios instance (`baseURL: VITE_API_URL`), explicitly throw error if value is missing.
-- [x] `src/api/errors.ts` — `ApiError` (`message`, `status`). Error body is obtained as a **string** from `error.response.data`; network error has `status: 0`.
+- [x] `src/api/errors.ts` — `ApiError` (`message`, `status`). `message` is a Turkish message mapped from the HTTP status code via `getErrorMessage`, not the raw API body; network error has `status: 0`.
 - [x] `src/api/interceptors.ts` — request: Bearer header; response: `ApiError` normalization + single-flight refresh.
 - [x] Separate Axios instance without interceptor for refresh calls.
 

@@ -233,9 +233,9 @@ export class ApiError extends Error {
 }
 ```
 
-API error bodies are returned as `text/plain`. After Axios's failed `JSON.parse`, the raw string is preserved — meaning `error.response.data` is a **string**, not an object. Do not try to read a `.message` property or `JSON.parse` it again.
+API error bodies are returned as `text/plain`, in English, with no structured error code — only the HTTP status code is machine-readable. The raw body is never shown to the user.
 
-Preserve the text returned by the API as `ApiError.message`; do not generate your own error message.
+`ApiError.message` is generated from the HTTP status code via `getErrorMessage(status)` in `src/api/errors.ts`, which maps each status to a fixed, user-facing Turkish message. `/auth/login`'s `401` is special-cased in the interceptor to "E-posta veya şifre hatalı." instead of the generic session-expired message, since the same status code means something different there. Do not read or display `error.response.data`.
 
 Distinguish network errors from HTTP errors based on the presence of `error.response`; network errors use `status: 0` and should display an appropriate fallback message.
 

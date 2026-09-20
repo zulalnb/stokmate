@@ -4,7 +4,7 @@ import { clearTokens, getAccessToken, getRefreshToken, setTokens } from '@/lib/a
 import type { AuthTokens } from '@/lib/types'
 
 import { apiClient, refreshClient } from './axios-client'
-import { ApiError } from './errors'
+import { ApiError, getErrorMessage } from './errors'
 
 const AUTH_EXEMPT_PATHS = ['/auth/login', '/auth/refresh']
 
@@ -79,9 +79,9 @@ apiClient.interceptors.response.use(
     }
 
     const message =
-      typeof error.response.data === 'string' && error.response.data
-        ? error.response.data
-        : 'Beklenmeyen bir hata oluştu.'
+      error.response.status === 401 && originalRequest?.url?.includes('/auth/login')
+        ? 'E-posta veya şifre hatalı.'
+        : getErrorMessage(error.response.status)
 
     return Promise.reject(new ApiError(message, error.response.status))
   },

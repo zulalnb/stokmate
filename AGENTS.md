@@ -25,7 +25,7 @@ Once the target is known, scope work to that project only:
 - If terminology or requirements are unclear or contradictory, ask the user instead of making a product decision.
 - Do not weaken client-side security rules.
 - If project documentation conflicts, report it rather than silently choosing one.
-- User-facing text is Turkish; code and commit messages are English.
+- User-facing text is Turkish; code, comment lines and commit messages are English.
 - Do not leave `console.log` statements.
 
 ## Do not explore `api/`

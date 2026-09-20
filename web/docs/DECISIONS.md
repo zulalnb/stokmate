@@ -42,6 +42,28 @@ Also, since API error bodies are `text/plain`, Axios's `JSON.parse` attempt fail
 
 ---
 
+## Error messages: mapped from HTTP status, not the raw API body
+
+**Selected:** `ApiError.message` generated from the HTTP status code via `getErrorMessage(status)` (`errors.ts`), with a URL-based override for `/auth/login`'s `401`
+**Rejected:** Showing the API's raw response text directly to the user
+
+The API has no structured error code — only a plain-English `text/plain` body (`api/API.md` § 1.2), so the status code is the only machine-readable signal available. Showing that raw text would put untranslated English in front of end users. Login's `401` needed a special case: `/auth/refresh` runs on a separate, interceptor-free Axios instance, so the only realistic path that reaches the generic `401` branch is `/auth/login` itself (wrong credentials) — the generic "session expired" copy would be nonsensical there, since there is no session yet.
+
+**Cost:** Status-only messages lose some specificity — every `400` shares one message rather than distinguishing "price is negative" from "invalid category," for example. `409` is worded specifically for SKU conflicts because that's the only condition the API documents for that status; if a second `409` case is ever added, this will need revisiting.
+
+---
+
+## Product form: `useForm` lifted to the page, `FormProvider`/`useFormContext` in between
+
+**Selected:** `product-create-form.tsx`/`product-edit-form.tsx` call `useForm()` and wrap `<ProductForm>` in `<FormProvider>`; `ProductForm` reads form state via `useFormContext()`. Server errors are applied with `setError()` inside the mutation's `onError` callback (`applyApiErrorToForm` in `product-form.schema.ts`): a `409` goes to the `sku` field, anything else goes to RHF's `root` error.
+**Rejected:** `useForm` local to `ProductForm`, with the mutation's error passed down as a prop and turned into a field/banner message inside `ProductForm` (tried first with a `useEffect` syncing the prop into `setError`, then with a render-derived value — both were awkward substitutes for the page just calling `setError` directly)
+
+The page component already owns the mutation lifecycle (`onSuccess`/`onError`), so calling `setError` directly in `onError` is the natural, imperative place for it — a real event handler, not state synced from a prop. It also unifies client-side zod errors and server-side errors into the same RHF error store (`errors.sku`), so the `sku` field needs no special-casing versus any other field. `productFormSchema`/`ProductFormValues`/`buildProductPayload`/`applyApiErrorToForm` moved to a sibling `product-form.schema.ts` file — `react-refresh/only-export-components` forbids exporting non-component values from a component file, and no `schemas/` folder convention exists elsewhere in the project to justify a bigger restructure.
+
+**Cost:** Two files (`product-create-form.tsx`, `product-edit-form.tsx`) each now call `useForm()` and must remember to call `applyApiErrorToForm` in `onError` — if a future product-form consumer forgets it, server errors silently disappear instead of showing anywhere.
+
+---
+
 ## Auth state: plain module with an in-memory cache
 
 **Selected:** `lib/auth-storage` (React-agnostic module, in-memory cache synced to `localStorage`)
