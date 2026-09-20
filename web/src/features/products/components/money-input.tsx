@@ -3,8 +3,10 @@ import * as React from 'react'
 import { Input } from '@/components/ui/input'
 import { formatKurusInput, parseKurus } from '@/lib/money'
 
-interface MoneyInputProps
-  extends Omit<React.ComponentProps<typeof Input>, 'value' | 'onChange' | 'type' | 'inputMode'> {
+interface MoneyInputProps extends Omit<
+  React.ComponentProps<typeof Input>,
+  'value' | 'onChange' | 'type' | 'inputMode'
+> {
   value: string
   onChange: (value: string) => void
 }
@@ -25,21 +27,25 @@ function positionAfterDigit(
     if (/\d/.test(text[i])) {
       seen++
       if (seen === digitCount) {
-        const pos = i + 1
-        // At the digit count matching the integer part's length, "before"
-        // and "after" the comma are the same digit count but different
-        // positions — pick the one the caller actually means.
-        return side === 'after' && pos === commaIndex ? commaIndex + 1 : pos
+        const posBeforeComma = i + 1
+        const isLastIntegerDigitButWantsAfterComma =
+          side === 'after' && posBeforeComma === commaIndex
+        return isLastIntegerDigitButWantsAfterComma ? commaIndex + 1 : posBeforeComma
       }
     }
   }
   return text.length
 }
 
-export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(function MoneyInput(
-  { value, onFocus, onKeyDown, onPaste, onChange, ...props },
-  forwardedRef,
-) {
+export function MoneyInput({
+  value,
+  onFocus,
+  onKeyDown,
+  onPaste,
+  onChange,
+  ref,
+  ...props
+}: MoneyInputProps) {
   const innerRef = React.useRef<HTMLInputElement>(null)
   const targetDigitIndexRef = React.useRef<number | null>(null)
   const targetSideRef = React.useRef<'before' | 'after'>('before')
@@ -58,6 +64,15 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
     }
   }, [displayValue])
 
+  function moveCursorSynchronously(
+    input: HTMLInputElement,
+    targetDigitIndex: number,
+    side: 'before' | 'after',
+  ) {
+    const pos = positionAfterDigit(displayValue, targetDigitIndex, side)
+    input.setSelectionRange(pos, pos)
+  }
+
   function apply(
     input: HTMLInputElement,
     nextKurusRaw: number,
@@ -65,11 +80,9 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
     side: 'before' | 'after' = 'before',
   ) {
     const nextKurus = Math.max(0, nextKurusRaw)
-    if (nextKurus === currentKurus) {
-      // The value doesn't actually change, so the effect above never fires for
-      // it — move the cursor synchronously here instead.
-      const pos = positionAfterDigit(displayValue, targetDigitIndex, side)
-      input.setSelectionRange(pos, pos)
+    const valueIsUnchanged = nextKurus === currentKurus
+    if (valueIsUnchanged) {
+      moveCursorSynchronously(input, targetDigitIndex, side)
       return
     }
     targetDigitIndexRef.current = targetDigitIndex
@@ -97,10 +110,8 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
         apply(input, Number(newFlat) || 0, pureIndex - 1)
         return
       }
-      if (pureIndex === flat.length - 2) {
-        // Cursor right after the comma (no kuruş digit to its left): just move the
-        // cursor before the comma, no digit changes. The value doesn't change, so
-        // useLayoutEffect never fires — the cursor is moved directly here instead.
+      const cursorImmediatelyAfterComma = pureIndex === flat.length - 2
+      if (cursorImmediatelyAfterComma) {
         input.setSelectionRange(commaIndex, commaIndex)
         return
       }
@@ -114,10 +125,8 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
     if (!/^[0-9]$/.test(e.key)) return
 
     if (inIntegerZone) {
-      if (intPart === '0') {
-        // The integer part is just the placeholder zero: typing replaces it
-        // instead of inserting next to it, no matter which side of the zero
-        // the cursor is on.
+      const integerPartIsPlaceholderZero = intPart === '0'
+      if (integerPartIsPlaceholderZero) {
         apply(input, Number(e.key + flat.slice(flat.length - 2)) || 0, 1)
         return
       }
@@ -125,7 +134,8 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
       apply(input, Number(newFlat) || 0, pureIndex + 1)
       return
     }
-    if (pureIndex >= flat.length) return // cursor at the end of the kuruş part: no-op
+    const cursorAtEndOfKurusPart = pureIndex >= flat.length
+    if (cursorAtEndOfKurusPart) return
     const newFlat = flat.slice(0, pureIndex) + e.key + flat.slice(pureIndex + 1)
     apply(input, Number(newFlat) || 0, pureIndex + 1)
   }
@@ -148,8 +158,8 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
       {...props}
       ref={(node) => {
         innerRef.current = node
-        if (typeof forwardedRef === 'function') forwardedRef(node)
-        else if (forwardedRef) forwardedRef.current = node
+        if (typeof ref === 'function') ref(node)
+        else if (ref) ref.current = node
       }}
       type="text"
       inputMode="numeric"
@@ -160,4 +170,4 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
       onFocus={handleFocus}
     />
   )
-})
+}
