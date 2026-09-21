@@ -7,7 +7,12 @@ import {
   type ErrorComponentProps,
 } from '@tanstack/react-router'
 import { useQueryErrorResetBoundary, useSuspenseQuery } from '@tanstack/react-query'
-import { functionalUpdate, type SortingState, type Updater } from '@tanstack/react-table'
+import {
+  functionalUpdate,
+  type PaginationState,
+  type SortingState,
+  type Updater,
+} from '@tanstack/react-table'
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
 
@@ -16,7 +21,6 @@ import { DataTable } from '@/features/products/components/data-table'
 import { ProductFilterBar } from '@/features/products/components/product-filter-bar'
 import { ProductsTableSkeleton } from '@/features/products/components/products-table-skeleton'
 import { StockSummaryCards } from '@/features/products/components/stock-summary-cards'
-import { TablePagination } from '@/features/products/components/table-pagination'
 import { brandsQuery } from '@/features/products/hooks/use-brands'
 import { categoriesQuery } from '@/features/products/hooks/use-categories'
 import { productsQuery } from '@/features/products/hooks/use-products'
@@ -122,6 +126,13 @@ function ProductsPage() {
     })
   }
 
+  const pagination: PaginationState = { pageIndex: page - 1, pageSize: data.pageSize }
+
+  /*   function handlePaginationChange(updater: Updater<PaginationState>) {
+    const nextPagination = functionalUpdate(updater, pagination)
+    navigate({ search: (prev) => ({ ...prev, page: nextPagination.pageIndex + 1 }) })
+  } */
+
   return (
     <>
       <StockSummaryCards stats={stats} />
@@ -148,15 +159,15 @@ function ProductsPage() {
         </div>
 
         <DataTable
-          data={data?.items ?? []}
+          data={data.items}
           columns={columns}
           sorting={sorting}
           onSortingChange={handleSortingChange}
+          pagination={pagination}
+          rowCount={data.total}
           hasActiveFilters={hasActiveFilters}
           onClearFilters={clearFilters}
         />
-
-        <TablePagination page={data.page} total={data.total} pageSize={data.pageSize} />
       </div>
     </>
   )

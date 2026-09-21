@@ -50,5 +50,13 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.65.0",
     "vite": "^8.2.0"
+  },
+  "intent": {
+    "skills": [
+      "@tanstack/react-table",
+      "@tanstack/router-core",
+      "@tanstack/router-plugin",
+      "@tanstack/table-core"
+    ]
   }
 }

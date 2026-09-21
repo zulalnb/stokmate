@@ -1,7 +1,7 @@
-import { Filter, X } from 'lucide-react'
+import { Filter, Search, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
@@ -133,13 +133,17 @@ export function ProductFilterBar({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Input
-        key={q ?? 'empty'}
-        defaultValue={q ?? ''}
-        onChange={(e) => debouncedSearchChange(e.target.value)}
-        placeholder="Ürün ara…"
-        className="w-56"
-      />
+      <InputGroup className="w-56">
+        <InputGroupInput
+          key={q ?? 'empty'}
+          defaultValue={q ?? ''}
+          onChange={(e) => debouncedSearchChange(e.target.value)}
+          placeholder="Ürün ara…"
+        />
+        <InputGroupAddon>
+          <Search />
+        </InputGroupAddon>
+      </InputGroup>
       {isMobile ? (
         <Popover>
           <PopoverTrigger render={<Button variant="outline" size="sm" nativeButton={false} />}>

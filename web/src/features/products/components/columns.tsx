@@ -1,12 +1,12 @@
 import { Link } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { CircleCheck, CircleMinus, CircleX, Pencil, type LucideIcon } from 'lucide-react'
+import { CircleCheck, CircleMinus, CircleX, ImageOff, Pencil, type LucideIcon } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { type DataTableFeatures } from '@/features/products/components/data-table-features'
 import { DeleteProductDialog } from '@/features/products/components/delete-product-dialog'
-import { SortableHeader } from '@/features/products/components/sortable-header'
+import { DataTableColumnHeader } from '@/features/products/components/data-table-column-header'
 import { formatDateTime } from '@/lib/date'
 import { STATUS_LABELS } from '@/lib/enums'
 import { formatKurus } from '@/lib/money'
@@ -26,15 +26,32 @@ const columnHelper = createColumnHelper<DataTableFeatures, Product>()
 
 export const columns = columnHelper.columns([
   columnHelper.accessor('name', {
-    header: ({ column }) => <SortableHeader label="Ürün" column={column} />,
+    header: ({ column }) => <DataTableColumnHeader label="Ürün" column={column} />,
     enableSorting: true,
     meta: { className: 'max-w-sm' },
     cell: ({ row }) => (
-      <div className="truncate">
-        <div className="truncate font-medium" title={row.original.name}>
-          {row.original.name}
+      <div className="flex items-center gap-2">
+        <div className="bg-muted flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md border">
+          {row.original.imageUrl ? (
+            <img
+              src={row.original.imageUrl}
+              alt={row.original.name}
+              width={36}
+              height={36}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <ImageOff className="text-muted-foreground size-4" aria-label="Görsel yok" />
+          )}
         </div>
-        <div className="text-muted-foreground truncate text-xs">{row.original.sku}</div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-medium" title={row.original.name}>
+            {row.original.name}
+          </div>
+          <div className="text-muted-foreground truncate text-xs">{row.original.sku}</div>
+        </div>
       </div>
     ),
   }),
@@ -48,18 +65,24 @@ export const columns = columnHelper.columns([
   }),
   columnHelper.accessor('price', {
     header: ({ column }) => (
-      <div className="flex justify-end">
-        <SortableHeader label="Fiyat" column={column} align="right" />
-      </div>
+      <DataTableColumnHeader
+        label="Fiyat"
+        column={column}
+        align="right"
+        className="flex justify-end"
+      />
     ),
     enableSorting: true,
     cell: ({ row }) => <div className="text-right">{formatKurus(row.original.price)}</div>,
   }),
   columnHelper.accessor('stock', {
     header: ({ column }) => (
-      <div className="flex justify-end">
-        <SortableHeader label="Stok" column={column} align="right" />
-      </div>
+      <DataTableColumnHeader
+        label="Stok"
+        column={column}
+        align="right"
+        className="flex justify-end"
+      />
     ),
     enableSorting: true,
     meta: { className: 'w-20' },
@@ -75,7 +98,7 @@ export const columns = columnHelper.columns([
     ),
   }),
   columnHelper.accessor('updatedAt', {
-    header: ({ column }) => <SortableHeader label="Son güncelleme" column={column} />,
+    header: ({ column }) => <DataTableColumnHeader label="Son güncelleme" column={column} />,
     enableSorting: true,
     cell: ({ row }) => (
       <div className="text-muted-foreground whitespace-nowrap">

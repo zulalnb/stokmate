@@ -189,6 +189,17 @@ Because the user experience is highly specific and relies on the existing `parse
 
 ---
 
+## Pagination as a real table feature
+
+**Selected:** Register `rowPaginationFeature` in `data-table-features.tsx` (no `paginatedRowModel`, same reasoning as `rowSortingFeature`), drive it in `manualPagination` mode from `data-table.tsx` via `state: { pagination }` + `onPaginationChange` + `rowCount`, and move rendering of `DataTablePagination` from the route into `DataTable` (passing it the `table` instance) so it reads `page`/`pageCount`/`getCanPreviousPage`/`getCanNextPage` from the table instead of recomputing `Math.ceil(total / pageSize)` independently.
+**Rejected:** Keep pagination fully external to the table, as it was — a standalone component computing its own page count from raw `page`/`total`/`pageSize` props.
+
+This mirrors how sorting is already integrated (`manualSorting: true`, `rowSortingFeature` for state/API without a client row model) and follows `@tanstack/table-core`'s documented `manualPagination`/`rowCount` pattern for server-owned pagination. The table becomes the single source of truth for page state instead of two places (the table's internal state and `DataTablePagination`'s own math) silently agreeing by coincidence.
+
+**Cost:** The route no longer renders `<DataTablePagination>` directly; `DataTable` now owns that composition. Pagination navigation is still `<Link search={...}>`-driven (never a plain `onClick`/`table.nextPage()` call), so hover-preload and normal anchor semantics are unchanged.
+
+---
+
 ## Open — not decided
 
 **Row click:** Should the entire product row go to details, or should there be a separate action column? This should be decided before starting the detail route.
