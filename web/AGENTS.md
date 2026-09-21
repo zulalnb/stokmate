@@ -377,23 +377,23 @@ Do not use the object form (`search={{ page: 2 }}`), as it removes the other fil
 When a feature's list is displayed as a table, it must follow a fixed file structure; the product table is the reference implementation (`src/features/products/components/`):
 
 ```text
-data-table-features.tsx   tableFeatures({...}) configuration — columnMeta type and rowSortingFeature; exports `features` and `DataTableFeatures` types
-columns.tsx                `columns` array built with createColumnHelper<DataTableFeatures, T>()
-sortable-header.tsx        sortable column header — column.getIsSorted() / column.getToggleSortingHandler()
-data-table.tsx             useTable() call + <Table> render tree; receives columns/data/sorting/onSortingChange as props
+data-table-features.tsx     tableFeatures({...}) configuration — columnMeta type, rowSortingFeature, rowPaginationFeature; exports `features` and `DataTableFeatures` types
+columns.tsx                  `columns` array built with createColumnHelper<DataTableFeatures, T>()
+data-table-column-header.tsx sortable column header — column.getIsSorted() / column.getToggleSortingHandler()
+data-table.tsx               useTable() call + <Table> render tree, and renders `DataTablePagination`; receives columns/data/sorting/onSortingChange/pagination/rowCount as props
+data-table-pagination.tsx    pagination footer — receives the `table` instance (not raw numbers); page/pageCount/canNext/canPrev are all read from it
 ```
 
-The filter bar and pagination are separate files in the same `components/` folder, outside these four files (`product-filter-bar.tsx` and `table-pagination.tsx` for products). The route file only manages URL/search state and passes props to these components; it must not call `useTable()`.
+The filter bar is a separate file in the same `components/` folder (`product-filter-bar.tsx` for products), rendered by the route. Pagination is not route-rendered: `data-table.tsx` renders `data-table-pagination.tsx` itself, passing it the `table` instance it already built, so page/pageCount/navigation-capability all come from one source instead of a sibling component recomputing them. The route still only manages URL/search state and passes props (including `pagination`/`rowCount`) to `DataTable`; it must not call `useTable()` itself.
 
-The project uses the library's new API: `tableFeatures`, `createColumnHelper`, `useTable`, `<FlexRender />`.
+The project uses the library's new API: `tableFeatures`, `createColumnHelper`, `useTable`, `<FlexRender />`. Most examples on the internet and the shadcn data-table documentation use the old API (`useReactTable`, `flexRender`, `getCoreRowModel`) and do not apply here. Before working on table, router, or query code, follow § Skill Loading above — load the matching `@tanstack/table-core` / `@tanstack/react-table` / `@tanstack/router-core` skill (e.g. `#core`, `#sorting`, `#pagination`, `#client-vs-server`, `#with-tanstack-query`, `#migrate-v8-to-v9`) instead of guessing from a v8-shaped example or reading `node_modules` types cold.
 
-**Most examples on the internet and the shadcn data-table documentation use the old API (`useReactTable`, `flexRender`, `getCoreRowModel`); those examples do not apply to this project.** When in doubt, read the types inside `node_modules/@tanstack/react-table` rather than making assumptions.
-
-Pagination, sorting, and filtering are **server-side**:
+Pagination and sorting are **server-side** (filtering is handled entirely outside the table, via `product-filter-bar.tsx` and URL search params — it is not a registered table feature):
 
 - Do not add `getPaginationRowModel()` / `getSortedRowModel()` (meaning do not pass `paginatedRowModel` / `sortedRowModel` slots to `tableFeatures({...})`); otherwise the API's returned page will be paginated a second time and sorting will work only within that page.
-- `rowSortingFeature` is still included — but only for *state and column API* (`state.sorting`, `column.getIsSorted()`, `column.getToggleSortingHandler()`). `sortedRowModel` is never included, so rows are not re-sorted on the client; the `state: { sorting }` and `onSortingChange` passed to `useTable` are connected to the route's URL-updating handler.
-- `pageCount` is calculated with `Math.ceil(total / pageSize)`; the response does not contain `totalPages`.
+- `rowSortingFeature` is registered with `manualSorting: true`. Sorting is driven through the table's own column API — `data-table-column-header.tsx`'s click handler is `column.getToggleSortingHandler()` — so `state: { sorting }` and `onSortingChange` passed to `useTable` are required and connected to the route's URL-updating handler. Leaving out `onSortingChange` (or setting `enableSorting: false` at the table level) makes every header's click silently do nothing — this happened once; see `docs/DECISIONS.md` if a similar report comes up again.
+- `rowPaginationFeature` is registered too, fed with `state: { pagination }` and `rowCount` (the server's `total`) — but with **no** `onPaginationChange`. Every page change goes through `<Link search={...}>` (see below), never the table's own API, so the table only needs read access (`table.getPageCount()`, `table.getRowCount()`, `table.getCanPreviousPage()`, `table.getCanNextPage()`) to stay the single source of truth for the pagination footer. Do not add `onPaginationChange` or call `table.nextPage()` / `setPageIndex()` — since pagination state is externally controlled from the URL, the next render would immediately overwrite whatever that call did, so the interaction would silently do nothing (same failure shape as the sorting note above).
+- `pageCount` comes from `table.getPageCount()` (resolved from the `rowCount` option, i.e. the server's `total`) — never compute it manually with `Math.ceil` again once a component already has the `table` instance.
 - Page and sorting state is not stored inside the component; it is read from the `validateSearch` schema and updated with `<Link search={...}>` / `navigate({ search: ... })`. Do not use `useState` for pagination or sorting state.
 - Sortable columns are limited to those accepted by the API: `name` | `price` | `stock` | `updatedAt`; set `enableSorting: true` only on these columns.
 - Column definitions belong in `columns.tsx`, not the route file.
