@@ -12,7 +12,7 @@ import type {
 export const productsQuery = (filters: ProductFilters) =>
   queryOptions({
     queryKey: ['products', filters],
-    queryFn: () => productsService.getProducts(filters),
+    queryFn: ({ signal }) => productsService.getProducts(filters, signal),
     refetchInterval: PRODUCTS_REFETCH_INTERVAL_MS,
   })
 

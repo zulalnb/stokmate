@@ -10,8 +10,10 @@ import type {
 import { apiClient } from '../axios-client'
 
 export const productsService = {
-  getProducts: (filters: ProductFilters) =>
-    apiClient.get<ProductListResponse>('/products', { params: filters }).then((res) => res.data),
+  getProducts: (filters: ProductFilters, signal?: AbortSignal) =>
+    apiClient
+      .get<ProductListResponse>('/products', { params: filters, signal })
+      .then((res) => res.data),
   getProduct: (id: number) =>
     apiClient.get<ProductDetail>(`/products/${id}`).then((res) => res.data),
   createProduct: (payload: CreateProductPayload) =>

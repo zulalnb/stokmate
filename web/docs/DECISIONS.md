@@ -200,6 +200,17 @@ Sorting and pagination looked symmetric at first (`manualSorting`/`rowSortingFea
 
 ---
 
+## Filtering stays outside the table
+
+**Selected:** Filtering (search + category/brand/status) stays entirely outside the table — `ProductFilterBar` drives URL search params directly via `onSearchChange`/`onFilterChange`/`onClearFilters`; the table has no `columnFilteringFeature`/`globalFilteringFeature`.
+**Rejected:** Wire filtering into `@tanstack/react-table` the way sorting/pagination are (`columnFilteringFeature` + `globalFilteringFeature`, `manualFiltering: true`, `state.columnFilters`/`state.globalFilter`).
+
+`categoryId`/`brandId` — what the filter bar and the API actually use — aren't table columns today; only display-only `categoryName`/`brandName` columns exist. Making them filterable columns would mean adding hidden columns whose only purpose is to hold filter state. Reading `@tanstack/table-core@9.1.2`'s source confirmed `manualFiltering` is a single flag shared between column and global filtering — it only disables the table's own client-side row re-filtering, it doesn't remove the debounce on the search box (500ms, `useDebouncedCallback`) or the mobile draft/"Uygula" deferred-commit logic (`ProductFilterBar`'s `draftFilters` + popover, see the table-driven pagination/sorting comparison above) — that logic would just move to writing into `table.setColumnFilters`/`setGlobalFilter` instead of calling `onFilterChange` directly, which would make `ProductFilterBar` depend on the `table` instance for no functional gain (it currently doesn't know `columns.tsx`/`data-table.tsx` exist). The URL (`validateSearch` schema) stays the single source of truth for filters, consistent with § TanStack Router and the `q/categoryId/brandId/status/page/sort/dir` query-key list in `AGENTS.md`.
+
+**Cost:** If a future requirement needs the category/brand dropdowns to be derived from what's actually in the current table data (`columnFacetingFeature`/`facetedUniqueValues`) instead of the separate `useCategories()`/`useBrands()` queries they use today, this decision should be revisited.
+
+---
+
 ## Open — not decided
 
 **Row click:** Should the entire product row go to details, or should there be a separate action column? This should be decided before starting the detail route.

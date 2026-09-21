@@ -1,4 +1,5 @@
 import { Filter, Search, X } from 'lucide-react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
@@ -41,16 +42,71 @@ export function ProductFilterBar({
 }) {
   const isMobile = useIsMobile()
   const debouncedSearchChange = useDebouncedCallback(onSearchChange, 500)
+  const [open, setOpen] = useState(false)
+  const [draftFilters, setDraftFilters] = useState<{
+    categoryId?: number
+    brandId?: number
+    status?: number
+  }>({ categoryId, brandId, status })
   const activeSelectFilterCount = [categoryId, brandId, status].filter(
     (value) => value !== undefined,
   ).length
 
+  const selectedCategoryId = isMobile ? draftFilters.categoryId : categoryId
+  const selectedBrandId = isMobile ? draftFilters.brandId : brandId
+  const selectedStatus = isMobile ? draftFilters.status : status
+
+  const debouncedCategoryChange = useDebouncedCallback(
+    (categoryId?: number) => onFilterChange({ categoryId }),
+    300,
+  )
+  const debouncedBrandChange = useDebouncedCallback(
+    (brandId?: number) => onFilterChange({ brandId }),
+    300,
+  )
+  const debouncedStatusChange = useDebouncedCallback(
+    (status?: number) => onFilterChange({ status }),
+    300,
+  )
+
+  function handleFilterChange(patch: { categoryId?: number; brandId?: number; status?: number }) {
+    if (isMobile) {
+      setDraftFilters((prev) => ({ ...prev, ...patch }))
+      return
+    }
+    if ('categoryId' in patch) debouncedCategoryChange(patch.categoryId)
+    if ('brandId' in patch) debouncedBrandChange(patch.brandId)
+    if ('status' in patch) debouncedStatusChange(patch.status)
+  }
+
+  function handleApply() {
+    onFilterChange(draftFilters)
+    setOpen(false)
+  }
+
+  function handleClearFilters() {
+    if (isMobile) {
+      setDraftFilters({})
+    }
+    debouncedCategoryChange.cancel()
+    debouncedBrandChange.cancel()
+    debouncedStatusChange.cancel()
+    onClearFilters()
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (nextOpen) {
+      setDraftFilters({ categoryId, brandId, status })
+    }
+    setOpen(nextOpen)
+  }
+
   const filterFields = (
     <>
       <Select
-        value={categoryId ? String(categoryId) : 'all'}
+        value={selectedCategoryId ? String(selectedCategoryId) : 'all'}
         onValueChange={(value) =>
-          onFilterChange({ categoryId: value === 'all' ? undefined : Number(value) })
+          handleFilterChange({ categoryId: value === 'all' ? undefined : Number(value) })
         }
         items={[
           { value: 'all', label: 'Tüm kategoriler' },
@@ -75,9 +131,9 @@ export function ProductFilterBar({
         </SelectContent>
       </Select>
       <Select
-        value={brandId ? String(brandId) : 'all'}
+        value={selectedBrandId ? String(selectedBrandId) : 'all'}
         onValueChange={(value) =>
-          onFilterChange({ brandId: value === 'all' ? undefined : Number(value) })
+          handleFilterChange({ brandId: value === 'all' ? undefined : Number(value) })
         }
         items={[
           { value: 'all', label: 'Tüm markalar' },
@@ -99,9 +155,9 @@ export function ProductFilterBar({
         </SelectContent>
       </Select>
       <Select
-        value={status ? String(status) : 'all'}
+        value={selectedStatus ? String(selectedStatus) : 'all'}
         onValueChange={(value) =>
-          onFilterChange({ status: value === 'all' ? undefined : Number(value) })
+          handleFilterChange({ status: value === 'all' ? undefined : Number(value) })
         }
         items={[
           { value: 'all', label: 'Tüm durumlar' },
@@ -123,9 +179,14 @@ export function ProductFilterBar({
         </SelectContent>
       </Select>
       {hasActiveFilters && (
-        <Button variant="ghost" size="sm" onClick={onClearFilters}>
+        <Button variant="ghost" size="sm" onClick={handleClearFilters}>
           <X className="size-4" />
           Filtreleri temizle
+        </Button>
+      )}
+      {isMobile && (
+        <Button size="sm" onClick={handleApply}>
+          Uygula
         </Button>
       )}
     </>
@@ -145,10 +206,11 @@ export function ProductFilterBar({
         </InputGroupAddon>
       </InputGroup>
       {isMobile ? (
-        <Popover>
+        <Popover open={open} onOpenChange={handleOpenChange}>
           <PopoverTrigger render={<Button variant="outline" size="sm" nativeButton={false} />}>
             <Filter className="size-4" />
-            Filtrele{activeSelectFilterCount > 0 ? ` (${activeSelectFilterCount})` : ''}
+            <span className="sr-only">Filtrele</span>
+            {activeSelectFilterCount > 0 ? ` (${activeSelectFilterCount})` : ''}
           </PopoverTrigger>
           <PopoverContent align="start" className="flex w-64 flex-col gap-2">
             {filterFields}

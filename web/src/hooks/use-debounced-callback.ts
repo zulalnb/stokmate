@@ -13,8 +13,12 @@ export function useDebouncedCallback<TArgs extends unknown[]>(
 
   useEffect(() => () => clearTimeout(timeoutRef.current), [])
 
-  return (...args: TArgs) => {
+  const debounced = (...args: TArgs) => {
     clearTimeout(timeoutRef.current)
     timeoutRef.current = setTimeout(() => callbackRef.current(...args), delayMs)
   }
+
+  debounced.cancel = () => clearTimeout(timeoutRef.current)
+
+  return debounced
 }
