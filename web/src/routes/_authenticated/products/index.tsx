@@ -20,6 +20,7 @@ import { productsQuery } from '@/features/products/hooks/use-products'
 import { statsQuery } from '@/features/products/hooks/use-stats'
 import { columns } from '@/features/products/components/columns'
 import { useFilters } from '@/hooks/use-filters'
+import { APP_NAME } from '@/lib/constants'
 
 const productsSearchSchema = z.object({
   q: z.string().optional(),
@@ -55,6 +56,7 @@ export const Route = createFileRoute('/_authenticated/products/')({
       context.queryClient.ensureQueryData(brandsQuery()),
       context.queryClient.ensureQueryData(statsQuery()),
     ]),
+  head: () => ({ meta: [{ title: `Ürünler — ${APP_NAME}` }] }),
   component: ProductsPage,
   errorComponent: ProductsListError,
   pendingComponent: () => <ProductsTableSkeleton />,

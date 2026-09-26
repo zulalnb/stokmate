@@ -10,6 +10,7 @@ import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from '@/compo
 import { Input } from '@/components/ui/input'
 import { useLogin } from '@/features/auth/hooks/use-auth'
 import { hasSession, setTokens } from '@/lib/auth-storage'
+import { APP_NAME } from '@/lib/constants'
 
 export const Route = createFileRoute('/login')({
   beforeLoad: () => {
@@ -17,6 +18,7 @@ export const Route = createFileRoute('/login')({
       throw redirect({ to: '/products' })
     }
   },
+  head: () => ({ meta: [{ title: `Giriş — ${APP_NAME}` }] }),
   component: LoginPage,
 })
 

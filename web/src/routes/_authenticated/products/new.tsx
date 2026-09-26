@@ -8,6 +8,7 @@ import { ProductDetailSkeleton } from '@/features/products/components/product-de
 import { brandsQuery } from '@/features/products/hooks/use-brands'
 import { categoriesQuery } from '@/features/products/hooks/use-categories'
 import { suppliersQuery } from '@/features/products/hooks/use-suppliers'
+import { APP_NAME } from '@/lib/constants'
 
 export const Route = createFileRoute('/_authenticated/products/new')({
   loader: ({ context }) =>
@@ -16,6 +17,7 @@ export const Route = createFileRoute('/_authenticated/products/new')({
       context.queryClient.ensureQueryData(brandsQuery()),
       context.queryClient.ensureQueryData(suppliersQuery()),
     ]),
+  head: () => ({ meta: [{ title: `Yeni ürün — ${APP_NAME}` }] }),
   component: ProductCreatePage,
   pendingComponent: () => <ProductDetailSkeleton />,
 })
