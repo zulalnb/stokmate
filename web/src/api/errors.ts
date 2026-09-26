@@ -18,3 +18,7 @@ const STATUS_MESSAGES: Record<number, string> = {
 export function getErrorMessage(status: number): string {
   return STATUS_MESSAGES[status] ?? 'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.'
 }
+
+export function isClientErrorStatus(status: number): boolean {
+  return status >= 400 && status < 500
+}

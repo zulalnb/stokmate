@@ -5,7 +5,12 @@ import {
   tableFeatures,
 } from '@tanstack/react-table'
 
-type ProductColumnMeta = { className?: string }
+type ProductColumnMeta = {
+  className?: string
+  label?: string
+  sortAscLabel?: string
+  sortDescLabel?: string
+}
 
 export const features = tableFeatures({
   columnMeta: metaHelper<ProductColumnMeta>(),

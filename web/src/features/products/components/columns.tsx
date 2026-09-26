@@ -28,7 +28,12 @@ export const columns = columnHelper.columns([
   columnHelper.accessor('name', {
     header: ({ column }) => <DataTableColumnHeader label="Ürün" column={column} />,
     enableSorting: true,
-    meta: { className: 'max-w-sm' },
+    meta: {
+      className: 'max-w-sm',
+      label: 'Ürün adı',
+      sortAscLabel: 'A → Z',
+      sortDescLabel: 'Z → A',
+    },
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <div className="bg-muted flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md border">
@@ -56,11 +61,13 @@ export const columns = columnHelper.columns([
     ),
   }),
   columnHelper.accessor('categoryName', {
-    header: 'Kategori',
+    header: ({ column }) => <DataTableColumnHeader label="Kategori" column={column} />,
+    enableSorting: false,
     cell: ({ row }) => <div className="truncate">{row.original.categoryName}</div>,
   }),
   columnHelper.accessor('brandName', {
-    header: 'Marka',
+    header: ({ column }) => <DataTableColumnHeader label="Marka" column={column} />,
+    enableSorting: false,
     cell: ({ row }) => <div className="truncate">{row.original.brandName}</div>,
   }),
   columnHelper.accessor('price', {
@@ -73,6 +80,7 @@ export const columns = columnHelper.columns([
       />
     ),
     enableSorting: true,
+    meta: { label: 'Fiyat', sortAscLabel: 'Düşükten yükseğe', sortDescLabel: 'Yüksekten düşüğe' },
     cell: ({ row }) => <div className="text-right">{formatKurus(row.original.price)}</div>,
   }),
   columnHelper.accessor('stock', {
@@ -85,7 +93,12 @@ export const columns = columnHelper.columns([
       />
     ),
     enableSorting: true,
-    meta: { className: 'w-20' },
+    meta: {
+      className: 'w-20',
+      label: 'Stok',
+      sortAscLabel: 'Azdan çoğa',
+      sortDescLabel: 'Çoktan aza',
+    },
     cell: ({ row }) => (
       <div
         className={cn(
@@ -100,6 +113,11 @@ export const columns = columnHelper.columns([
   columnHelper.accessor('updatedAt', {
     header: ({ column }) => <DataTableColumnHeader label="Son güncelleme" column={column} />,
     enableSorting: true,
+    meta: {
+      label: 'Güncellenme',
+      sortAscLabel: 'Eskiden yeniye',
+      sortDescLabel: 'Yeniden eskiye',
+    },
     cell: ({ row }) => (
       <div className="text-muted-foreground whitespace-nowrap">
         {formatDateTime(row.original.updatedAt)}
@@ -107,7 +125,8 @@ export const columns = columnHelper.columns([
     ),
   }),
   columnHelper.accessor('status', {
-    header: 'Durum',
+    header: ({ column }) => <DataTableColumnHeader label="Durum" column={column} />,
+    enableSorting: false,
     cell: ({ row }) => {
       const config = STATUS_BADGE_CONFIG[row.original.status]
       const Icon = config.icon

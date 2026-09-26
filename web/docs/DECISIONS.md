@@ -211,6 +211,19 @@ Sorting and pagination looked symmetric at first (`manualSorting`/`rowSortingFea
 
 ---
 
+## Filter bar and sort control both rendered by `DataTable`
+
+**Selected:** `data-table.tsx` renders `ProductFilterBar` and a new `DataTableSortDropdown` itself (alongside `DataTablePagination`, already there), instead of the route rendering the filter bar as a sibling of `DataTable`. The route still owns filter/sort state and handlers (`updateFilters`, `clearFilters`, `handleSortingChange` — unchanged) and passes them as props; `DataTable` also gained an `actions` slot (`ReactNode`) so page-level buttons like "Ürün ekle" can sit next to the sort dropdown without `DataTable` knowing what they do.
+**Rejected:** Keep the filter bar route-rendered (as it was) and give the new sort dropdown its own way to reach the `table` instance — e.g. lifting `useTable()` to the route, which § Tables already forbids ("the route ... must not call `useTable()` itself"), or threading the `table` instance back out of `DataTable` as a return value/ref for the route to hand to a route-rendered dropdown.
+
+A "Sırala" dropdown was added so sorting can be triggered from a control next to "Ürün ekle", not just from column headers. It needs the same column API column headers use (`column.getToggleSortingHandler()`, `column.getIsSorted()`, `column.getCanSort()`), and that only exists inside `DataTable`, where `useTable()` is called. This is the same fork already recorded in "Pagination as a real table feature": once a sibling control needs read/write access to the `table` instance, it has to move inside `DataTable` rather than the instance being exposed outward. Moving the filter bar in with it was the more consistent option, since it now sits in the same toolbar row as the new dropdown, rather than leaving one row split across two components for no structural reason. The sort dropdown's field list is derived from `table.getAllLeafColumns().filter((c) => c.getCanSort())` rather than a second hardcoded list, reusing the `meta.label` already added to each sortable column in `columns.tsx` — so a column's `enableSorting`/`meta.label` is the single source of truth for both the header and the dropdown.
+
+This does not reopen "Filtering stays outside the table" above: that decision is about whether filtering is a registered table *feature* (`columnFilteringFeature`/`manualFiltering`, still absent), not about which component renders `ProductFilterBar`. Filtering still writes to the URL exactly as before; only the host component changed.
+
+**Cost:** `data-table.tsx` is no longer just a table renderer — it now also owns toolbar composition (filter bar + sort dropdown + actions slot), so it's a slightly heavier file to read. The `actions` prop is an escape hatch specifically for page-level buttons that don't need `table`; if a future action needs the table instance too, it should become a real `DataTable`-rendered control (like the sort dropdown), not grow the `actions` slot's responsibilities.
+
+---
+
 ## Open — not decided
 
 **Row click:** Should the entire product row go to details, or should there be a separate action column? This should be decided before starting the detail route.

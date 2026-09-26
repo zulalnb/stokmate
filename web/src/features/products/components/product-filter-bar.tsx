@@ -1,8 +1,7 @@
-import { Filter, Search, X } from 'lucide-react'
+import { Filter } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
@@ -18,30 +17,21 @@ import { STATUS_LABELS } from '@/lib/enums'
 import type { Brand, Category } from '@/lib/types'
 
 export function ProductFilterBar({
-  q,
   categoryId,
   brandId,
   status,
   categories,
   brands,
-  hasActiveFilters,
-  onSearchChange,
   onFilterChange,
-  onClearFilters,
 }: {
-  q?: string
   categoryId?: number
   brandId?: number
   status?: number
   categories: Category[]
   brands: Brand[]
-  hasActiveFilters: boolean
-  onSearchChange: (value: string) => void
   onFilterChange: (patch: { categoryId?: number; brandId?: number; status?: number }) => void
-  onClearFilters: () => void
 }) {
   const isMobile = useIsMobile()
-  const debouncedSearchChange = useDebouncedCallback(onSearchChange, 500)
   const [open, setOpen] = useState(false)
   const [draftFilters, setDraftFilters] = useState<{
     categoryId?: number
@@ -82,16 +72,6 @@ export function ProductFilterBar({
   function handleApply() {
     onFilterChange(draftFilters)
     setOpen(false)
-  }
-
-  function handleClearFilters() {
-    if (isMobile) {
-      setDraftFilters({})
-    }
-    debouncedCategoryChange.cancel()
-    debouncedBrandChange.cancel()
-    debouncedStatusChange.cancel()
-    onClearFilters()
   }
 
   function handleOpenChange(nextOpen: boolean) {
@@ -178,12 +158,6 @@ export function ProductFilterBar({
           </SelectGroup>
         </SelectContent>
       </Select>
-      {hasActiveFilters && (
-        <Button variant="ghost" size="sm" onClick={handleClearFilters}>
-          <X className="size-4" />
-          Filtreleri temizle
-        </Button>
-      )}
       {isMobile && (
         <Button size="sm" onClick={handleApply}>
           Uygula
@@ -194,17 +168,6 @@ export function ProductFilterBar({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <InputGroup className="w-56">
-        <InputGroupInput
-          key={q ?? 'empty'}
-          defaultValue={q ?? ''}
-          onChange={(e) => debouncedSearchChange(e.target.value)}
-          placeholder="Ürün ara…"
-        />
-        <InputGroupAddon>
-          <Search />
-        </InputGroupAddon>
-      </InputGroup>
       {isMobile ? (
         <Popover open={open} onOpenChange={handleOpenChange}>
           <PopoverTrigger render={<Button variant="outline" size="sm" nativeButton={false} />}>

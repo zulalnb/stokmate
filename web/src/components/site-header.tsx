@@ -14,9 +14,9 @@ export function SiteHeader() {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-auto"
         />
-        <h1 className="text-base font-medium">
+        <span className="text-base font-medium">
           {navData.navMain.find((item) => item.url === location.pathname)?.title}
-        </h1>
+        </span>
       </div>
     </header>
   )

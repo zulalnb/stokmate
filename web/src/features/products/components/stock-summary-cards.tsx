@@ -14,7 +14,7 @@ import type { ProductStats } from '@/lib/types'
 export function StockSummaryCards({ stats }: { stats: ProductStats }) {
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-3">
-      <Card className="@container/card">
+      <Card className="@container/card gap-2">
         <CardHeader>
           <CardDescription>Toplam Ürün</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -30,7 +30,7 @@ export function StockSummaryCards({ stats }: { stats: ProductStats }) {
           Sistemde kayıtlı tüm ürünler
         </CardFooter>
       </Card>
-      <Card className="@container/card">
+      <Card className="@container/card gap-2">
         <CardHeader>
           <CardDescription>Stoğu Tükenen</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -46,7 +46,7 @@ export function StockSummaryCards({ stats }: { stats: ProductStats }) {
           Stok girişi bekleyen ürünler
         </CardFooter>
       </Card>
-      <Card className="@container/card">
+      <Card className="@container/card gap-2">
         <CardHeader>
           <CardDescription>Kritik Stok</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
