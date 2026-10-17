@@ -36,7 +36,7 @@ public static class DbSeeder
         return new User
         {
             Id = 1,
-            Email = "test@ornek.com",
+            Email = "test@example.com",
             FullName = "Deniz Yılmaz",
             PasswordSalt = salt,
             PasswordHash = PasswordHasher.Hash("Test1234!", salt)
