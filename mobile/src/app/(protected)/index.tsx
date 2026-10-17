@@ -144,7 +144,7 @@ export default function ProductsScreen() {
                 <View className="py-4">
                   <ActivityIndicator />
                 </View>
-              ) : null
+              ) : undefined
             }
             ListEmptyComponent={
               <View className="items-center py-12">
